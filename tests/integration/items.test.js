@@ -1,5 +1,7 @@
 const request = require('supertest');
 const { createApp } = require('../../src/app');
+const History = require('../../src/models/history.model');
+const { createItem, updateItem, getItem, listItems, softDeleteItem } = require('../../src/services/item.service');
 const { connectTestDatabase, clearTestDatabase, disconnectTestDatabase } = require('../helpers/database');
 
 jest.setTimeout(300000);
@@ -8,6 +10,8 @@ afterEach(clearTestDatabase);
 afterAll(disconnectTestDatabase);
 
 const app = createApp();
+const storedPayload = { name: 'Service item', part_num: 'S-1', stored: true,
+  location: { warehouse: 'W1', section: 'S1', pack: 'P1' } };
 
 async function createStoredItem() {
   return request(app).post('/api/items')
@@ -62,4 +66,27 @@ test('rejects unsupported image types', async () => {
     .attach('images', Buffer.from('text'), { filename: 'notes.txt', contentType: 'text/plain' });
   expect(response.status).toBe(400);
   expect(response.body.success).toBe(false);
+});
+
+test('service creates initial history and metadata edits create no transaction', async () => {
+  const item = await createItem(storedPayload, []);
+  expect(await History.countDocuments({ item_id: item._id })).toBe(1);
+  await updateItem(item._id, { description: 'Edited' }, []);
+  expect(await History.countDocuments({ item_id: item._id })).toBe(1);
+});
+
+test('service records a location transaction', async () => {
+  const item = await createItem(storedPayload, []);
+  await updateItem(item._id, { location: { warehouse: 'W1', section: 'S1', pack: 'P2' } }, []);
+  const rows = await History.find({ item_id: item._id }).sort({ date: 1 }).lean();
+  expect(rows[1]).toMatchObject({ from: storedPayload.location, to: { warehouse: 'W1', section: 'S1', pack: 'P2' } });
+});
+
+test('service hides soft-deleted items and rejects repeated deletion', async () => {
+  const item = await createItem(storedPayload, []);
+  await softDeleteItem(item._id);
+  await expect(getItem(item._id)).rejects.toMatchObject({ statusCode: 404 });
+  expect((await listItems({ includeDeleted: true })).total).toBe(1);
+  expect(await History.exists({ item_id: item._id, to: 'deleted' })).toBeTruthy();
+  await expect(softDeleteItem(item._id)).rejects.toMatchObject({ statusCode: 409 });
 });
