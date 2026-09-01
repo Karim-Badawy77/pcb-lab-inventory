@@ -70,8 +70,8 @@ The create page uses a single-column form divided into progressive sections:
 1. Identity: name and part number.
 2. Inventory state: stored or delivered.
 3. Conditional state fields:
-   - Stored items require warehouse, section, and pack.
-   - Delivered items require delivered-to and may include delivered-by.
+    - Stored items require warehouse, section, and pack.
+    - Delivered items require delivered-to and may include delivered-by.
 4. Classification: category and owner.
 5. Description, tags, and update notes.
 6. Images.
