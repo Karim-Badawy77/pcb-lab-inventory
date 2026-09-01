@@ -70,6 +70,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .card-image > img { width: 100%; height: 100%; object-fit: cover; }
 .status-badge { position: absolute; top: .75rem; right: .75rem; min-height: 1.8rem; padding: .35rem .6rem; display: inline-flex; align-items: center; gap: .35rem; border-radius: 99px; font-size: .64rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; backdrop-filter: blur(10px); }
 .status-badge span { width: .42rem; height: .42rem; border-radius: 50%; background: currentColor; }
+.detail-status .status-badge { position: static; }
 .status-badge--stored { color: #184a2c; background: rgb(222 242 218 / 92%); }
 .status-badge--delivered { color: #765014; background: rgb(255 235 181 / 94%); }
 .pcb-placeholder { position: absolute; inset: 0; display: grid; place-items: center; color: #e9f3ea; background-color: #526d5b; background-image: radial-gradient(circle at 18% 22%, #d7f04b 0 .23rem, transparent .27rem), radial-gradient(circle at 76% 68%, #d7f04b 0 .23rem, transparent .27rem), linear-gradient(35deg, transparent 47%, rgb(215 240 75 / 38%) 48% 50%, transparent 51%), linear-gradient(145deg, transparent 47%, rgb(215 240 75 / 25%) 48% 50%, transparent 51%); }
@@ -122,6 +123,46 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .editor-hero h1 { max-width: 48rem; margin: .7rem 0 .6rem; font-family: Georgia, serif; font-size: clamp(2.3rem, 10vw, 5rem); font-weight: 500; line-height: .98; letter-spacing: -.04em; }
 .editor-hero p { max-width: 38rem; margin: 0; color: #bed0c2; line-height: 1.6; }
 .back-link { min-height: 2.75rem; margin: -.5rem 0 1rem; display: inline-flex; align-items: center; color: #d9e5dc; font-size: .8rem; font-weight: 800; text-decoration: none; }
+.detail-heading { padding: 1rem 1rem 1.6rem; color: white; background: var(--green); }
+.detail-title-row { display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
+.detail-title-row h1 { margin: .25rem 0 0; font-family: Georgia, serif; font-size: clamp(2.3rem, 10vw, 5rem); font-weight: 500; line-height: .95; letter-spacing: -.04em; }
+.detail-heading .part-number { color: var(--lime); }
+.detail-status { margin-top: 1.2rem; display: flex; align-items: center; gap: .8rem; color: #bed0c2; font-size: .82rem; }
+.detail-layout { padding: 1rem; display: grid; gap: 1rem; }
+.gallery-main { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; padding: 0; display: block; border: 0; border-radius: var(--radius); color: white; background: #526d5b; cursor: zoom-in; }
+.gallery-main > img { width: 100%; height: 100%; object-fit: contain; background: #203027; }
+.gallery-main > span { position: absolute; right: .7rem; bottom: .7rem; padding: .4rem .6rem; border-radius: .4rem; background: rgb(10 25 17 / 72%); font-size: .7rem; font-weight: 800; }
+.gallery-empty { cursor: default; }
+.gallery-empty .pcb-placeholder { position: absolute; inset: 0; }
+.gallery-thumbs { margin-top: .6rem; display: flex; gap: .5rem; overflow-x: auto; }
+.gallery-thumbs button { width: 4rem; height: 4rem; flex: none; overflow: hidden; padding: 0; border: 2px solid transparent; border-radius: .5rem; background: #dce1d7; cursor: pointer; }
+.gallery-thumbs button.active { border-color: var(--green); }
+.gallery-thumbs img { width: 100%; height: 100%; object-fit: cover; }
+.record-panel, .detail-section { padding: 1.2rem; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); }
+.record-grid { margin: 1rem 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.record-grid div { min-width: 0; }
+.record-grid dt { color: var(--muted); font-size: .66rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.record-grid dd { margin: .25rem 0 0; overflow-wrap: anywhere; font-weight: 700; }
+.tag-row { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: .4rem; }
+.tag-row span { padding: .35rem .5rem; color: var(--green-2); background: #e8eadf; border-radius: .4rem; font-size: .7rem; }
+.detail-section { margin: 0 1rem 1rem; }
+.detail-section h2 { margin: .25rem 0 1rem; font-family: Georgia, serif; font-size: 1.7rem; font-weight: 500; }
+.prose { max-width: 50rem; color: #3f4c43; line-height: 1.7; white-space: pre-wrap; }
+.muted { color: var(--muted); }
+.updates-list { display: grid; gap: .6rem; }
+.updates-list article { padding: .85rem; background: #eeece3; border-left: 3px solid var(--lime); border-radius: .35rem; }
+.updates-list p { margin: 0 0 .4rem; }
+.updates-list time, .history-list time { color: var(--muted); font-size: .68rem; }
+.history-list { margin: 0; padding: 0; list-style: none; }
+.history-list li { position: relative; padding: 0 0 1.4rem 1.5rem; border-left: 1px solid var(--line); }
+.history-list li:last-child { padding-bottom: 0; border-color: transparent; }
+.history-dot { position: absolute; left: -.34rem; top: .2rem; width: .65rem; height: .65rem; border: 2px solid var(--paper); border-radius: 50%; background: var(--green-2); box-shadow: 0 0 0 1px var(--green-2); }
+.history-list h3 { margin: .2rem 0; font-size: .95rem; }
+.history-list p { margin: 0; color: var(--muted); font-size: .82rem; }
+.lightbox { position: fixed; z-index: 100; inset: 0; padding: 4rem 1rem 2rem; display: grid; place-items: center; color: white; background: rgb(6 15 10 / 96%); }
+.lightbox img { max-width: 100%; max-height: calc(100vh - 7rem); object-fit: contain; }
+.lightbox-close { position: absolute; top: 1rem; right: 1rem; width: 3rem; height: 3rem; border: 1px solid rgb(255 255 255 / 35%); border-radius: 50%; color: white; background: transparent; cursor: pointer; font-size: 1.8rem; }
+.lightbox-count { position: absolute; bottom: 1rem; font-size: .75rem; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
 @media (min-width: 48rem) {
@@ -138,6 +179,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .image-preview-grid { grid-template-columns: repeat(4, 1fr); }
   .form-actions { padding-inline: 2rem; }
   .editor-hero { padding-inline: 2rem; }
+  .detail-heading { padding-inline: 2rem; }
+  .detail-layout { padding: 2rem; grid-template-columns: minmax(0, 1.7fr) minmax(18rem, .8fr); align-items: start; }
+  .detail-section { margin-inline: 2rem; padding: 1.5rem; }
 }
 
 @media (min-width: 75rem) {
