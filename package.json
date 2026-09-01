@@ -13,6 +13,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "cors": "^2.8.6",
     "dotenv": "^17.0.0",
     "express": "^5.0.0",
     "mongoose": "^9.0.0",
