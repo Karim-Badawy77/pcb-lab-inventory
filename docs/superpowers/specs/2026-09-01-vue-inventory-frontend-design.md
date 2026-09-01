@@ -8,11 +8,23 @@ The first version performs search and filtering entirely in the browser. It does
 
 ## Technical Approach
 
-The frontend will use Vue 3, Vue Router, and Vite installed locally through npm. All runtime assets will be compiled into the application during deployment, so the lab system remains fully functional without internet access.
+The frontend will be a standalone project under `frontend/`, with its own `package.json`, dependency lockfile, Vite configuration, tests, and deployment instructions. It will use Vue 3 and Vue Router installed locally through npm. All runtime assets will be compiled into the frontend deployment, so the lab system remains fully functional without internet access.
 
-Vue source files will live under `client/`. During development, Vite will serve the frontend with fast module reloads and proxy `/api` and `/uploads` requests to Express. The production build will emit static assets under `public/`; Express will serve that directory and return `public/index.html` for frontend routes, while `/api/items` and `/uploads` keep their existing behavior.
+Vue source files will live under `frontend/src/`. During development, Vite will serve the frontend with fast module reloads. The production build will emit static assets under `frontend/dist/`, which can be deployed to any static web server independently from the API.
 
-Root npm scripts will run the API, the Vite development server, the production build, and the existing test suite. Production remains a single Express application and does not require a separate frontend server. `public/` is generated output and will not be committed; deployment must run the frontend build before starting Express.
+The root Node project remains API-only. Express will not serve frontend assets or SPA fallbacks. It will enable CORS for every origin so a separately hosted frontend can call JSON, multipart, deletion, and uploaded-image routes.
+
+Runtime frontend configuration will be loaded before the Vue entry point from `frontend/public/config.js`:
+
+```js
+window.APP_CONFIG = {
+  API_BASE_URL: "http://localhost:3000"
+};
+```
+
+Vite copies this file to `dist/config.js`. An operator can change `API_BASE_URL` after building without recompiling. API requests and uploaded-image URLs will both resolve against this normalized base URL. An empty base URL remains valid for a reverse-proxied same-origin deployment.
+
+For local testing on one machine, Express runs on port `3000` and Vite runs on port `5173`. These are independent processes and projects; no combined process manager is required.
 
 ## Routes
 
@@ -25,7 +37,7 @@ Unknown frontend paths will show a small client-side not-found view. API paths w
 
 ## Frontend Structure
 
-Frontend source files will be organized by responsibility under `client/src/`:
+Frontend source files will be organized by responsibility under `frontend/src/`:
 
 - Application bootstrap and route definitions.
 - A small API client that owns response-envelope handling and request errors.
@@ -34,7 +46,7 @@ Frontend source files will be organized by responsibility under `client/src/`:
 - Pure utilities for validation, multipart serialization, search/filtering, date and location formatting, and image constraints.
 - One shared stylesheet with the mobile-first responsive design system.
 
-Vite configuration and the frontend HTML entry point will live under `client/`. The repository's dependency lockfile will pin Vue, Vue Router, Vite, and test-support packages so an offline deployment can be reproduced from a prepared local npm cache or copied installation bundle.
+Vite configuration, the frontend HTML entry point, runtime configuration, `package.json`, and `package-lock.json` will live under `frontend/`. The root lockfile will contain only API dependencies. Each project can be installed, tested, and deployed without installing the other project's dependencies.
 
 Components will use explicit props and events. API calls and route-level loading belong to page components; shared components remain focused on display and user interaction.
 
@@ -119,27 +131,28 @@ All interactive controls will be keyboard reachable, have visible focus treatmen
 
 ## Data Flow
 
-The REST API remains the single source of truth. Route pages fetch their required data on entry. The browse page owns its fetched collection and derives visible items from search and filter state. Create and detail pages own form state and delegate validation and multipart construction to shared pure utilities.
+The REST API remains the single source of truth. A configuration utility reads and normalizes `window.APP_CONFIG.API_BASE_URL`. The API client builds every request URL from that value, and the image-display utility converts relative `/uploads/...` paths into absolute URLs using the same base. Route pages fetch their required data on entry. The browse page owns its fetched collection and derives visible items from search and filter state. Create and detail pages own form state and delegate validation and multipart construction to shared pure utilities.
 
 Successful mutations use the returned API record rather than guessing the server result. The detail page refreshes its full record after state-changing updates when transaction history must be refreshed.
 
 ## Testing and Verification
 
-Pure JavaScript behavior will be covered by Jest tests, including:
+Pure JavaScript and Vue behavior will be covered by Vitest inside `frontend/`, including:
 
 - Case-insensitive multi-field search.
 - Combined status, category, location, and tag filtering.
 - Conditional stored/delivered validation.
 - Multipart field serialization and image-removal IDs.
 - Formatting fallbacks for missing images, locations, and optional metadata.
+- Runtime API and image URL resolution for configured, empty, and trailing-slash base URLs.
 
 Express integration tests will verify:
 
-- Static frontend assets are served.
-- `/`, `/items`, `/items/new`, and representative `/items/:id` paths return the SPA shell.
+- CORS permits requests from arbitrary origins and handles preflight requests.
+- Frontend routes are not served by the API.
 - `/api` unknown routes retain JSON 404 behavior rather than returning HTML.
 
-The production build command will be part of verification. Tests must not fetch external scripts or other network-hosted runtime assets.
+Both projects' test commands and the frontend production build command will be part of verification. Tests must not fetch external scripts or other network-hosted runtime assets. The built `dist/index.html` must load `config.js` before the compiled Vue entry point.
 
 Manual verification will cover create, browse/filter, edit/state change, image add/remove/lightbox, guarded delete, error recovery, and unsaved-change behavior at representative phone and desktop widths.
 
