@@ -1,3 +1,5 @@
+import { apiUrl } from './config';
+
 export async function apiRequest(path, options = {}, fetchImpl = fetch) {
   const headers = new Headers(options.headers || {});
   headers.set('Accept', 'application/json');
@@ -5,7 +7,7 @@ export async function apiRequest(path, options = {}, fetchImpl = fetch) {
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetchImpl(path, { ...options, headers });
+  const response = await fetchImpl(apiUrl(path), { ...options, headers });
   let body;
   try {
     body = await response.json();

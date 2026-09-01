@@ -1,3 +1,5 @@
+import { assetUrl } from './config';
+
 export function normalizeSearch(value) {
   return String(value ?? '').trim().toLocaleLowerCase();
 }
@@ -41,5 +43,5 @@ export function formatLocation(item) {
 }
 
 export function primaryImage(item) {
-  return item?.images?.[0]?.path || '';
+  return assetUrl(item?.images?.[0]?.path || '');
 }

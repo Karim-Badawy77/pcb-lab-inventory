@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchAllItems } from './api';
 import { filterItems, formatLocation, primaryImage, uniqueFilterOptions } from './inventory';
 
@@ -14,6 +14,9 @@ const items = [
   }
 ];
 
+beforeEach(() => { window.APP_CONFIG = { API_BASE_URL: 'http://localhost:3000' }; });
+afterEach(() => { delete window.APP_CONFIG; });
+
 describe('inventory filtering and display helpers', () => {
   it('combines normalized search and filters', () => {
     expect(filterItems(items, {
@@ -27,7 +30,7 @@ describe('inventory filtering and display helpers', () => {
   it('derives stable display values and filter options', () => {
     expect(formatLocation(items[0])).toBe('W1 / S2 / P3');
     expect(formatLocation(items[1])).toBe('Assembly');
-    expect(primaryImage(items[0])).toBe('/uploads/a.webp');
+    expect(primaryImage(items[0])).toBe('http://localhost:3000/uploads/a.webp');
     expect(primaryImage(items[1])).toBe('');
     expect(uniqueFilterOptions(items)).toEqual({
       categories: ['Control', 'Sensor'], warehouses: ['W1'], tags: ['analog', 'motor']
@@ -48,8 +51,8 @@ describe('inventory API pagination', () => {
       });
 
     await expect(fetchAllItems(fetchImpl)).resolves.toEqual([{ _id: '1' }, { _id: '2' }]);
-    expect(fetchImpl).toHaveBeenNthCalledWith(1, '/api/items?page=1&limit=100', expect.any(Object));
-    expect(fetchImpl).toHaveBeenNthCalledWith(2, '/api/items?page=2&limit=100', expect.any(Object));
+    expect(fetchImpl).toHaveBeenNthCalledWith(1, 'http://localhost:3000/api/items?page=1&limit=100', expect.any(Object));
+    expect(fetchImpl).toHaveBeenNthCalledWith(2, 'http://localhost:3000/api/items?page=2&limit=100', expect.any(Object));
   });
 
   it('surfaces the API error message', async () => {
