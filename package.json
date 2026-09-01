@@ -2,23 +2,37 @@
   "name": "pcb-lab-inventory-api",
   "version": "1.0.0",
   "private": true,
-  "engines": { "node": ">=24.0.0" },
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "jest --runInBand",
+    "dev:api": "node --watch src/server.js",
+    "dev:web": "vite --config client/vite.config.js",
+    "build": "vite build --config client/vite.config.js",
+    "test:api": "jest --runInBand",
+    "test:web": "vitest run --config client/vite.config.js",
+    "test": "npm run test:api && npm run test:web",
     "test:watch": "jest --watch"
   },
   "dependencies": {
     "dotenv": "^17.0.0",
     "express": "^5.0.0",
     "mongoose": "^9.0.0",
-    "multer": "^2.0.0"
+    "multer": "^2.0.0",
+    "vue": "^3.5.42",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vue/test-utils": "^2.5.0",
     "jest": "^30.0.0",
+    "jsdom": "^30.0.1",
     "mongodb-memory-server": "^10.0.0",
-    "supertest": "^7.0.0"
+    "supertest": "^7.0.0",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
   }
 }
