@@ -8,11 +8,11 @@ The first version performs search and filtering entirely in the browser. It does
 
 ## Technical Approach
 
-The frontend will use Vue 3 and Vue Router loaded directly from a public CDN. It will not introduce a frontend package manager, compiler, or build step.
+The frontend will use Vue 3, Vue Router, and Vite installed locally through npm. All runtime assets will be compiled into the application during deployment, so the lab system remains fully functional without internet access.
 
-Express will serve a new `public/` directory. Requests for frontend routes will fall back to `public/index.html`, while `/api/items` and `/uploads` keep their existing behavior. `index.html` will load Vue and Vue Router from CDN scripts, the application stylesheet, and modular application JavaScript.
+Vue source files will live under `client/`. During development, Vite will serve the frontend with fast module reloads and proxy `/api` and `/uploads` requests to Express. The production build will emit static assets under `public/`; Express will serve that directory and return `public/index.html` for frontend routes, while `/api/items` and `/uploads` keep their existing behavior.
 
-This approach keeps deployment as a single Node.js application. Its accepted trade-off is that a browser needs CDN access on the first uncached visit.
+Root npm scripts will run the API, the Vite development server, the production build, and the existing test suite. Production remains a single Express application and does not require a separate frontend server. `public/` is generated output and will not be committed; deployment must run the frontend build before starting Express.
 
 ## Routes
 
@@ -25,7 +25,7 @@ Unknown frontend paths will show a small client-side not-found view. API paths w
 
 ## Frontend Structure
 
-Frontend files will be organized by responsibility under `public/`:
+Frontend source files will be organized by responsibility under `client/src/`:
 
 - Application bootstrap and route definitions.
 - A small API client that owns response-envelope handling and request errors.
@@ -33,6 +33,8 @@ Frontend files will be organized by responsibility under `public/`:
 - Reusable components for the application shell, item form, image picker, image gallery/lightbox, status badge, feedback messages, and delete confirmation.
 - Pure utilities for validation, multipart serialization, search/filtering, date and location formatting, and image constraints.
 - One shared stylesheet with the mobile-first responsive design system.
+
+Vite configuration and the frontend HTML entry point will live under `client/`. The repository's dependency lockfile will pin Vue, Vue Router, Vite, and test-support packages so an offline deployment can be reproduced from a prepared local npm cache or copied installation bundle.
 
 Components will use explicit props and events. API calls and route-level loading belong to page components; shared components remain focused on display and user interaction.
 
@@ -137,6 +139,8 @@ Express integration tests will verify:
 - `/`, `/items`, `/items/new`, and representative `/items/:id` paths return the SPA shell.
 - `/api` unknown routes retain JSON 404 behavior rather than returning HTML.
 
+The production build command will be part of verification. Tests must not fetch external scripts or other network-hosted runtime assets.
+
 Manual verification will cover create, browse/filter, edit/state change, image add/remove/lightbox, guarded delete, error recovery, and unsaved-change behavior at representative phone and desktop widths.
 
 ## Out of Scope
@@ -145,4 +149,4 @@ Manual verification will cover create, browse/filter, edit/state change, image a
 - Server-side search or filter query parameters.
 - Offline-first caching or service workers.
 - Restoring or browsing soft-deleted items in the UI.
-- A frontend build pipeline, TypeScript, or a component framework.
+- TypeScript or a third-party component framework.
