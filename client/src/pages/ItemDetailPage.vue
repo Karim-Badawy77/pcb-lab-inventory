@@ -1,8 +1,9 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { onBeforeRouteLeave, useRoute } from 'vue-router';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import FeedbackMessage from '@/components/FeedbackMessage.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
+import DeleteItemDialog from '@/features/item-detail/DeleteItemDialog.vue';
 import HistoryTimeline from '@/features/item-detail/HistoryTimeline.vue';
 import ImageGallery from '@/features/item-detail/ImageGallery.vue';
 import ItemForm from '@/features/item-form/ItemForm.vue';
@@ -12,6 +13,7 @@ import { formatDate } from '@/lib/dates';
 import { formatLocation } from '@/lib/inventory';
 
 const route = useRoute();
+const router = useRouter();
 const item = ref(null);
 const loading = ref(true);
 const busy = ref(false);
@@ -19,6 +21,10 @@ const error = ref('');
 const success = ref('');
 const editing = ref(false);
 const dirty = ref(false);
+const deleteOpen = ref(false);
+const deleteBusy = ref(false);
+const deleteError = ref('');
+const deleteTrigger = ref(null);
 
 async function loadItem() {
   loading.value = true;
@@ -46,6 +52,32 @@ function cancelEdit() {
   if (dirty.value && !window.confirm('Discard your unsaved edits?')) return;
   dirty.value = false;
   editing.value = false;
+}
+
+function openDelete() {
+  deleteError.value = '';
+  deleteOpen.value = true;
+}
+
+async function closeDelete() {
+  if (deleteBusy.value) return;
+  deleteOpen.value = false;
+  await Promise.resolve();
+  deleteTrigger.value?.focus();
+}
+
+async function deleteItem() {
+  deleteBusy.value = true;
+  deleteError.value = '';
+  try {
+    await apiRequest(`/api/items/${item.value._id}`, { method: 'DELETE' });
+    deleteOpen.value = false;
+    await router.push('/items');
+  } catch (requestError) {
+    deleteError.value = requestError.message;
+  } finally {
+    deleteBusy.value = false;
+  }
 }
 
 function beforeUnload(event) {
@@ -103,7 +135,9 @@ onBeforeRouteLeave(() => !dirty.value || window.confirm('Discard your unsaved ed
         <section class="detail-section"><span class="eyebrow">Description</span><h2>About this board</h2><p class="prose">{{ item.description || 'No description recorded.' }}</p></section>
         <section class="detail-section"><span class="eyebrow">Field notes</span><h2>Updates</h2><div v-if="item.updates?.length" class="updates-list"><article v-for="update in item.updates" :key="update._id || update.createdAt"><p>{{ update.text }}</p><time :datetime="update.createdAt">{{ formatDate(update.createdAt) }}</time></article></div><p v-else class="muted">No update notes recorded.</p></section>
         <section class="detail-section"><span class="eyebrow">Movement log</span><h2>Transaction history</h2><HistoryTimeline :history="item.history" /></section>
+        <section class="danger-zone"><div><span class="eyebrow eyebrow--danger">Danger zone</span><h2>Remove from active inventory</h2><p>This action soft-deletes the record and writes a final history transaction.</p></div><button ref="deleteTrigger" type="button" class="button button--danger-outline" data-testid="open-delete" @click="openDelete">Delete item</button></section>
       </template>
+      <DeleteItemDialog v-if="deleteOpen" :item="item" :busy="deleteBusy" :error="deleteError" @confirm="deleteItem" @close="closeDelete" />
     </template>
   </main>
 </template>

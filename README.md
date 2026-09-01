@@ -27,6 +27,33 @@ ALLOWED_IMAGE_TYPES=image/jpeg,image/png,image/webp
 
 Uploaded files are stored in `uploads/` and served from `/uploads/<filename>`.
 
+## Frontend
+
+The mobile-first Vue interface is installed and built locally. It does not load Vue, fonts, scripts, or styles from a CDN, so the production application works without internet access.
+
+For development, run the API and Vite frontend in separate terminals:
+
+```powershell
+npm install
+npm run dev:api
+```
+
+```powershell
+npm run dev:web
+```
+
+Open the Vite address shown in the terminal. Vite proxies `/api` and `/uploads` to the API on port 3000.
+
+For production or offline use:
+
+```powershell
+npm install
+npm run build
+npm start
+```
+
+Open `http://localhost:3000`. The build command generates the ignored `public/` directory that Express serves. Install dependencies or prepare the npm cache before moving the server offline; browser operation after the build makes no CDN requests.
+
 ## API
 
 | Method | Route | Behavior |

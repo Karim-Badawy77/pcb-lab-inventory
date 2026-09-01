@@ -2,6 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ItemDetailPage from './ItemDetailPage.vue';
+import DeleteItemDialog from '@/features/item-detail/DeleteItemDialog.vue';
 import ImageGallery from '@/features/item-detail/ImageGallery.vue';
 import { apiRequest } from '@/lib/api';
 
@@ -69,6 +70,39 @@ describe('ItemDetailPage', () => {
     await flushPromises();
     expect(wrapper.text()).toContain('Motor Controller');
   });
+
+  it('soft deletes only after the exact name and returns to inventory', async () => {
+    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce({ ...detail, deleted: true });
+    const router = testRouter();
+    await router.push('/items/item-1');
+    await router.isReady();
+    const wrapper = mount(ItemDetailPage, { attachTo: document.body, global: { plugins: [router] } });
+    await flushPromises();
+    await wrapper.get('[data-testid="open-delete"]').trigger('click');
+    await wrapper.get('[name="confirm_name"]').setValue('Motor Controller');
+    await wrapper.get('[data-testid="confirm-delete"]').trigger('click');
+    await flushPromises();
+
+    expect(apiRequest).toHaveBeenCalledWith('/api/items/item-1', { method: 'DELETE' });
+    expect(router.currentRoute.value.fullPath).toBe('/items');
+    wrapper.unmount();
+  });
+
+  it('keeps a failed delete open with its server message', async () => {
+    apiRequest.mockResolvedValueOnce(detail).mockRejectedValueOnce(new Error('Delete failed'));
+    const router = testRouter();
+    await router.push('/items/item-1');
+    const wrapper = mount(ItemDetailPage, { global: { plugins: [router] } });
+    await flushPromises();
+    await wrapper.get('[data-testid="open-delete"]').trigger('click');
+    await wrapper.get('[name="confirm_name"]').setValue('Motor Controller');
+    await wrapper.get('[data-testid="confirm-delete"]').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Delete failed');
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
+    expect(wrapper.get('[data-testid="confirm-delete"]').attributes('disabled')).toBeUndefined();
+  });
 });
 
 describe('ImageGallery', () => {
@@ -87,5 +121,19 @@ describe('ImageGallery', () => {
     expect(document.querySelector('[role="dialog"]')).toBeNull();
     expect(document.activeElement).toBe(opener.element);
     wrapper.unmount();
+  });
+});
+
+describe('DeleteItemDialog', () => {
+  it('requires the exact item name and closes with Escape while idle', async () => {
+    const wrapper = mount(DeleteItemDialog, { props: { item: detail, busy: false, error: '' } });
+    const confirm = wrapper.get('[data-testid="confirm-delete"]');
+    expect(confirm.attributes('disabled')).toBeDefined();
+    await wrapper.get('[name="confirm_name"]').setValue('motor controller');
+    expect(confirm.attributes('disabled')).toBeDefined();
+    await wrapper.get('[name="confirm_name"]').setValue('Motor Controller');
+    expect(confirm.attributes('disabled')).toBeUndefined();
+    await wrapper.get('[role="dialog"]').trigger('keydown', { key: 'Escape' });
+    expect(wrapper.emitted('close')).toHaveLength(1);
   });
 });

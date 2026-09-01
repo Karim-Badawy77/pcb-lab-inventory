@@ -48,6 +48,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .button--lime { color: var(--green); background: var(--lime); }
 .button--primary { color: white; background: var(--green); }
 .button--ghost { color: var(--green); background: transparent; border-color: var(--green); }
+.button--danger { color: white; background: var(--danger); }
+.button--danger-outline { color: var(--danger); background: transparent; border-color: var(--danger); }
 .hero-add { width: 3rem; height: 3rem; padding: 0; border-radius: 50%; font-size: 0; flex: none; }
 .hero-add span { font-size: 1.5rem; }
 .browse-tools { position: relative; z-index: 2; padding: 1rem; background: var(--cream); border-bottom: 1px solid var(--line); }
@@ -163,6 +165,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .lightbox img { max-width: 100%; max-height: calc(100vh - 7rem); object-fit: contain; }
 .lightbox-close { position: absolute; top: 1rem; right: 1rem; width: 3rem; height: 3rem; border: 1px solid rgb(255 255 255 / 35%); border-radius: 50%; color: white; background: transparent; cursor: pointer; font-size: 1.8rem; }
 .lightbox-count { position: absolute; bottom: 1rem; font-size: .75rem; }
+.danger-zone { margin: 2rem 1rem; padding: 1.2rem; display: flex; flex-direction: column; align-items: start; gap: 1rem; border: 1px solid #d8a9a3; border-radius: var(--radius); background: #f8e8e4; }
+.danger-zone h2 { margin: .25rem 0; font-family: Georgia, serif; font-weight: 500; }
+.danger-zone p { margin: 0; color: #78534e; font-size: .84rem; }
+.eyebrow--danger { color: var(--danger); }
+.dialog-backdrop { position: fixed; z-index: 90; inset: 0; padding: 1rem; display: grid; place-items: center; background: rgb(8 18 12 / 72%); }
+.delete-dialog { width: min(100%, 31rem); padding: 1.4rem; background: var(--paper); border-radius: var(--radius); box-shadow: 0 25px 80px rgb(0 0 0 / 35%); }
+.dialog-icon { width: 2.6rem; height: 2.6rem; margin-bottom: 1rem; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--danger); font-weight: 900; }
+.delete-dialog h2 { margin: .25rem 0 .6rem; font-family: Georgia, serif; font-size: 2rem; font-weight: 500; }
+.delete-dialog > p { color: var(--muted); line-height: 1.55; }
+.delete-dialog .feedback { margin-inline: 0; }
+.dialog-actions { margin-top: 1.2rem; display: flex; justify-content: flex-end; gap: .6rem; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
 @media (min-width: 48rem) {
@@ -182,6 +195,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .detail-heading { padding-inline: 2rem; }
   .detail-layout { padding: 2rem; grid-template-columns: minmax(0, 1.7fr) minmax(18rem, .8fr); align-items: start; }
   .detail-section { margin-inline: 2rem; padding: 1.5rem; }
+  .danger-zone { margin-inline: 2rem; padding: 1.5rem; flex-direction: row; align-items: center; justify-content: space-between; }
 }
 
 @media (min-width: 75rem) {
