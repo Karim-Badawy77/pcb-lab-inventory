@@ -6,7 +6,7 @@ module.exports = defineConfig({
   root: __dirname,
   plugins: [vue()],
   resolve: { alias: { '@': path.resolve(__dirname, 'src') } },
-  build: { outDir: path.resolve(__dirname, '../public'), emptyOutDir: true },
+  build: { outDir: 'dist', emptyOutDir: true },
   server: {
     proxy: {
       '/api': 'http://localhost:3000',
