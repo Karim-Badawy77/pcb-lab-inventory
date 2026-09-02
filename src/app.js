@@ -10,6 +10,7 @@ function createApp() {
   app.use(cors());
   app.use(express.json());
   app.use('/uploads', express.static(path.resolve('uploads')));
+  app.get('/api/health', (req, res) => res.json({ success: true, data: { status: 'ok' } }));
   app.use('/api/items', itemRoutes);
   app.use(notFound);
   app.use(errorHandler);

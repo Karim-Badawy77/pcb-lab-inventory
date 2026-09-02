@@ -8,6 +8,13 @@ test('unknown routes use the stable error envelope', async () => {
   expect(response.body).toEqual({ success: false, message: 'Route not found' });
 });
 
+test('health route reports a live server', async () => {
+  const response = await request(createApp()).get('/api/health');
+
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual({ success: true, data: { status: 'ok' } });
+});
+
 test('allows any CORS origin and handles preflight', async () => {
   const app = createApp();
   const response = await request(app).get('/missing').set('Origin', 'https://frontend.example.test');

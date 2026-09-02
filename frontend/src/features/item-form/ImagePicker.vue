@@ -63,11 +63,12 @@ onBeforeUnmount(revokePreviews);
             <span>{{ retainedImages.length + files.length }} / 10</span>
         </div>
         <div class="upload-drop">
-            <span class="upload-icon">＋</span>
+            <span class="upload-icon" aria-hidden="true">＋</span>
             <div class="upload-actions">
                 <strong>Add board photos</strong>
                 <div class="upload-buttons">
-                    <label class="btn">
+                    <label class="btn btn-primary">
+                        <span aria-hidden="true">📷</span>
                         Take photo
                         <input
                             type="file"
@@ -79,6 +80,7 @@ onBeforeUnmount(revokePreviews);
                         />
                     </label>
                     <label class="btn secondary">
+                        <span aria-hidden="true">🖼️</span>
                         Choose from gallery
                         <input
                             type="file"
@@ -140,62 +142,87 @@ onBeforeUnmount(revokePreviews);
 <style scoped>
 .upload-drop {
     display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px;
-    border: 1px dashed var(--muted-600, #ccc);
-    border-radius: 8px;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border: 1px dashed var(--green-2, #245c3d);
+    border-radius: 12px;
+    background: color-mix(
+        in srgb,
+        var(--paper, #fffdf6) 88%,
+        var(--lime, #d7f04b)
+    );
+    text-align: center;
+    cursor: auto;
 }
 .upload-icon {
     font-size: 28px;
     line-height: 1;
-    color: var(--brand-500, #0b74de);
+    color: var(--green, #173f2b);
     flex: 0 0 36px;
 }
 .upload-actions {
     flex: 1 1 auto;
+    min-width: 0;
+}
+.upload-actions > strong {
+    display: block;
+    font-size: 1.05rem;
 }
 .upload-buttons {
     display: flex;
-    gap: 8px;
-    margin: 8px 0;
+    gap: 10px;
+    margin: 14px 0 10px;
 }
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 10px 14px;
-    min-height: 44px;
-    border-radius: 8px;
-    background: var(--brand-500, #0b74de);
+    flex: 1 1 0;
+    padding: 12px 14px;
+    min-height: 48px;
+    border-radius: 9px;
+    background: var(--green, #173f2b);
     color: #fff;
     cursor: pointer;
     user-select: none;
-    font-weight: 600;
+    font-weight: 800;
+    text-align: center;
 }
 .btn.secondary {
     background: #fff;
-    color: var(--muted-900, #111);
-    border: 1px solid var(--muted-400, #ddd);
+    color: var(--green, #173f2b);
+    border: 1px solid var(--green-2, #245c3d);
+    background: var(--paper, #fffdf6);
 }
 .btn:active {
     transform: translateY(1px);
 }
 .upload-hint {
-    color: var(--muted-700, #666);
-    font-size: 0.9rem;
+    display: block;
+    color: var(--muted, #68736a);
+    font-size: 0.78rem;
 }
 
 /* Make buttons larger and stacked on small screens to avoid misclicks */
 @media (max-width: 640px) {
+    .upload-drop {
+        align-items: stretch;
+        flex-direction: column;
+        padding: 18px 14px;
+        gap: 10px;
+    }
+    .upload-icon {
+        flex-basis: auto;
+    }
     .upload-buttons {
         flex-direction: column;
+        gap: 10px;
     }
     .btn {
         width: 100%;
-        padding: 14px 16px;
-        min-height: 56px;
+        min-height: 54px;
         font-size: 1rem;
     }
 }

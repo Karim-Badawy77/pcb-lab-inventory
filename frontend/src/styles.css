@@ -32,7 +32,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .brand strong { font-size: .78rem; letter-spacing: .13em; }
 .brand small { color: #bdcfc2; font-size: .68rem; }
 .site-header nav { display: flex; align-items: center; gap: .4rem; }
-.site-header nav a { min-height: 2.75rem; padding: 0 .7rem; display: flex; align-items: center; border-radius: .6rem; color: #dfe9e1; text-decoration: none; font-size: .82rem; font-weight: 700; }
+.site-header nav a, .site-header nav button { min-height: 2.75rem; padding: 0 .7rem; display: flex; align-items: center; border: 0; border-radius: .6rem; color: #dfe9e1; background: transparent; text-decoration: none; font-size: .82rem; font-weight: 700; cursor: pointer; }
 .site-header nav a.router-link-active { background: rgb(255 255 255 / 10%); color: white; }
 .site-header .nav-add { background: var(--lime); color: var(--green); }
 .site-header .nav-add.router-link-active { background: var(--lime); color: var(--green); }
