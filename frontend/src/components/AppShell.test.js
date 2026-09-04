@@ -47,3 +47,19 @@ describe('AppShell health check', () => {
     vi.useRealTimers();
   });
 });
+
+describe('AppShell footer', () => {
+  it('links the developer credit to the WhatsApp account', () => {
+    const wrapper = mount(AppShell, { global: { stubs: { RouterLink: true, RouterView: true } } });
+
+    const developerLink = wrapper.get('.developer-credit a');
+
+    expect(wrapper.get('.developer-credit').text()).toBe('This application was developed by K.Badawy');
+    expect(developerLink.text()).toBe('K.Badawy');
+    expect(developerLink.attributes()).toMatchObject({
+      href: 'https://wa.me/201025175196',
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    });
+  });
+});

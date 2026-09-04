@@ -24,8 +24,16 @@
         </header>
         <RouterView />
         <footer class="site-footer">
-            <span>PCB LAB / INVENTORY</span
-            ><span>Local system · Offline ready</span>
+            <span>PCB LAB / INVENTORY</span>
+            <span class="developer-credit"
+                >This application was developed by
+                <a
+                    href="https://wa.me/201025175196"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >K.Badawy</a
+                ></span
+            >
         </footer>
     </div>
 </template>
