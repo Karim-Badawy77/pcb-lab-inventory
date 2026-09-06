@@ -63,3 +63,24 @@ describe('AppShell footer', () => {
     });
   });
 });
+
+describe('AppShell brand', () => {
+  it('shows the PCB logo instead of the text badge', () => {
+    const wrapper = mount(AppShell, {
+      global: {
+        stubs: {
+          RouterLink: { template: '<a><slot /></a>' },
+          RouterView: true,
+        },
+      },
+    });
+
+    const logo = wrapper.get('.brand-mark img');
+
+    expect(logo.attributes()).toMatchObject({
+      src: '/assets/PCB Logo2.png',
+      alt: 'PCB LAB logo',
+    });
+    expect(wrapper.get('.brand-mark').text()).toBe('');
+  });
+});
