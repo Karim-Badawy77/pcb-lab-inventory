@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const path = require("path");
 const Item = require("../models/item.model");
 const History = require("../models/history.model");
+const { buildFieldChanges, plain } = require('./history.service');
 const ApiError = require("../utils/api-error");
 const {
     normalizeInventoryState,
@@ -9,12 +10,18 @@ const {
     isInventoryTransaction,
 } = require("./inventory-state");
 const { removeFiles } = require("./file.service");
+const { syncRepairments } = require('./repairment.service');
 
 const EDITABLE = [
     "name",
     "part_num",
     "owner",
-    "category",
+    "organization",
+    "serial_num",
+    "functional",
+    "under_repairment",
+    "type",
+    "quantity",
     "description",
     "tags",
     "updates",
@@ -44,16 +51,12 @@ async function createItem(payload, files = []) {
                 ...state,
                 images: imageRecords(files),
             }).save({ session });
+            await syncRepairments(created, session);
             await History.create(
                 [
                     {
                         item_id: created._id,
-                        from: null,
-                        to: snapshotInventoryState(created),
-                        delivered_to: created.stored
-                            ? undefined
-                            : created.delivered_to,
-                        new_item: true,
+                        fields: Object.keys(created.toObject()).filter((key) => !['_id', '__v', 'dates'].includes(key)).map((field_name) => ({ field_name, from: null, to: plain(created[field_name]) })),
                     },
                 ],
                 { session },
@@ -118,7 +121,7 @@ async function updateItem(id, patch, files = []) {
             for (const key of EDITABLE)
                 if (Object.hasOwn(patch, key)) item[key] = patch[key];
             if (
-                ["stored", "location", "delivered_to"].some((key) =>
+                ["stored", "location", "delivered_to", "under_repairment"].some((key) =>
                     Object.hasOwn(patch, key),
                 )
             ) {
@@ -129,6 +132,9 @@ async function updateItem(id, patch, files = []) {
                     location: Object.hasOwn(patch, "location")
                         ? patch.location
                         : item.location?.toObject(),
+                    under_repairment: Object.hasOwn(patch, 'under_repairment')
+                        ? patch.under_repairment
+                        : item.under_repairment,
                     delivered_to: Object.hasOwn(patch, "delivered_to")
                         ? patch.delivered_to
                         : item.delivered_to,
@@ -146,17 +152,16 @@ async function updateItem(id, patch, files = []) {
             );
             item.images.push(...imageRecords(files));
             await item.save({ session });
-            if (isInventoryTransaction(before, item)) {
+            await syncRepairments(item, session);
+            const changes = buildFieldChanges(before, item.toObject(), [...EDITABLE, 'images', 'stored', 'location', 'delivered_to', 'deleted']);
+            if (changes.length) {
+                item.edit_count = (before.edit_count || 0) + 1;
+                await item.save({ session });
                 await History.create(
                     [
                         {
                             item_id: item._id,
-                            from: snapshotInventoryState(before),
-                            to: snapshotInventoryState(item),
-                            delivered_to: item.stored
-                                ? undefined
-                                : item.delivered_to,
-                            new_item: false,
+                            fields: changes,
                         },
                     ],
                     { session },
@@ -179,17 +184,15 @@ async function softDeleteItem(id) {
         const item = await Item.findById(id).session(session);
         if (!item) throw new ApiError(404, "Item not found");
         if (item.deleted) throw new ApiError(409, "Item is already deleted");
-        const from = snapshotInventoryState(item);
+        const from = item.toObject();
         item.deleted = true;
+        item.edit_count = (item.edit_count || 0) + 1;
         deleted = await item.save({ session });
         await History.create(
             [
                 {
                     item_id: item._id,
-                    from,
-                    to: "deleted",
-                    delivered_to: item.delivered_to,
-                    new_item: false,
+                    fields: [{ field_name: 'deleted', from: from.deleted, to: true }],
                 },
             ],
             { session },

@@ -11,15 +11,20 @@ const updateSchema = new mongoose.Schema({ text: { type: String, required: true,
 const itemSchema = new mongoose.Schema({
   images: { type: [imageSchema], default: [] },
   stored: { type: Boolean, required: true }, deleted: { type: Boolean, default: false },
-  location: { type: locationSchema }, owner: { type: String, trim: true }, category: { type: String, trim: true },
+  location: { type: locationSchema }, owner: { type: String, trim: true }, organization: { type: String, trim: true },
+  serial_num: { type: [String], default: [] }, functional: { type: Boolean, default: false },
+  under_repairment: { type: Boolean, default: false },
+  type: { type: String, enum: ['pcb', 'module', 'else'] }, edit_count: { type: Number, default: 0, min: 0 },
+  quantity: { type: Number, default: 1, min: 1, validate: Number.isInteger },
   description: { type: String, trim: true }, tags: { type: [String], default: [] }, updates: { type: [updateSchema], default: [] },
-  name: { type: String, required: true, trim: true }, part_num: { type: String, required: true, trim: true },
+  name: { type: String, required: true, trim: true }, part_num: { type: String, trim: true },
   delivered_by: { type: String, trim: true },
   delivered_to: { type: String, trim: true, validate: { validator(value) { return this.stored || Boolean(value); }, message: 'delivered_to is required for delivered items' } }
 }, { collection: 'items', timestamps: { createdAt: 'dates.created', updatedAt: 'dates.modified' } });
 
 itemSchema.pre('validate', function validateState() {
-  if (this.stored && (!this.location?.warehouse || !this.location?.section || !this.location?.pack)) {
+  const underRepair = this.under_repairment && this.stored && this.location?.warehouse === 'lab' && this.location.section == null && this.location.pack == null;
+  if (this.stored && !underRepair && (!this.location?.warehouse || !this.location?.section || !this.location?.pack)) {
     this.invalidate('location', 'location warehouse, section, and pack are required for stored items');
   }
   if (this.stored && this.delivered_to) this.invalidate('delivered_to', 'delivered_to must be empty for stored items');

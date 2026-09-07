@@ -79,7 +79,10 @@ test('service records a location transaction', async () => {
   const item = await createItem(storedPayload, []);
   await updateItem(item._id, { location: { warehouse: 'W1', section: 'S1', pack: 'P2' } }, []);
   const rows = await History.find({ item_id: item._id }).sort({ date: 1 }).lean();
-  expect(rows[1]).toMatchObject({ from: storedPayload.location, to: { warehouse: 'W1', section: 'S1', pack: 'P2' } });
+  expect(rows[1].repairment_id).toBeNull();
+  expect(rows[1].fields).toEqual(expect.arrayContaining([
+    { field_name: 'location', from: storedPayload.location, to: { warehouse: 'W1', section: 'S1', pack: 'P2' } },
+  ]));
 });
 
 test('service hides soft-deleted items and rejects repeated deletion', async () => {
@@ -87,6 +90,6 @@ test('service hides soft-deleted items and rejects repeated deletion', async () 
   await softDeleteItem(item._id);
   await expect(getItem(item._id)).rejects.toMatchObject({ statusCode: 404 });
   expect((await listItems({ includeDeleted: true })).total).toBe(1);
-  expect(await History.exists({ item_id: item._id, to: 'deleted' })).toBeTruthy();
+  expect(await History.exists({ item_id: item._id, 'fields.field_name': 'deleted', 'fields.to': true })).toBeTruthy();
   await expect(softDeleteItem(item._id)).rejects.toMatchObject({ statusCode: 409 });
 });

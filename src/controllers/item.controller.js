@@ -16,6 +16,13 @@ function parsePayload(body) {
             });
         payload.stored = payload.stored === "true";
     }
+    for (const field of ['functional', 'under_repairment']) {
+        if (typeof payload[field] === 'string') {
+            if (!['true', 'false'].includes(payload[field])) throw Object.assign(new Error(`${field} must be true or false`), { statusCode: 400 });
+            payload[field] = payload[field] === 'true';
+        }
+    }
+    for (const field of ['quantity']) if (typeof payload[field] === 'string') payload[field] = Number(payload[field]);
     return payload;
 }
 
