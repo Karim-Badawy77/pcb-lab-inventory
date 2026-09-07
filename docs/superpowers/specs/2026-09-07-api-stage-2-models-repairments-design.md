@@ -33,6 +33,7 @@ This stage is API-only. It updates the MongoDB models and services for richer it
 - Add `field_test_date: [Date]`, defaulting to an empty array.
 - Add `repairer: [String]`, defaulting to an empty array.
 - Add `spare_part: [{ part: String, price: Number }]`, defaulting to an empty array.
+- Add `deleted: Boolean`, defaulting to `false`, for repairment-level soft deletion.
 - Use timestamps for repairment creation and modification.
 
 ## Service behavior
@@ -41,14 +42,14 @@ Item creation and updates compare the persisted item before and after state. Eve
 
 When `under_repairment` is true, the item must be stored and its location must be normalized to exactly `{ warehouse: "lab", section: null, pack: null }`. The service creates missing repairment documents until the number of repairments equals the item quantity, without duplicating existing documents. Invalid combinations fail atomically.
 
-Repairment creation and updates are exposed through dedicated service/controller/routes. A repairment edit increments the parent item's `edit_count` exactly once and writes history entries with the parent `item_id` and the edited `repairment_id`. Repairment field names are represented directly (for example `status`, `repairer`, or `spare_part`).
+Repairment creation and updates are exposed through dedicated service/controller/routes. Normal repairment reads exclude deleted repairments, while an explicit include-deleted option may expose them. A repairment edit increments the parent item's `edit_count` exactly once and writes history entries with the parent `item_id` and the edited `repairment_id`. Repairment field names are represented directly (for example `status`, `repairer`, or `spare_part`). Repairment soft deletion sets `deleted: true`, increments the parent item's `edit_count` once, and records the deletion in history without physically removing the document; repeated deletion is rejected.
 
 All item, repairment, and history writes participating in one request occur in the existing MongoDB transaction pattern. Failed validation or transaction work must not leave partial repairment, item, edit-count, or history changes.
 
 ## API surface
 
 - Preserve existing item routes, updating accepted item fields and response data.
-- Add repairment routes for create, list-by-item, get-by-id, and patch/update.
+- Add repairment routes for create, list-by-item, get-by-id, patch/update, and soft delete.
 - Keep validation failures in the existing stable error envelope.
 - Frontend behavior and controls are out of scope for this stage; the API exposes the `type` enum for a future select dropdown.
 
@@ -62,6 +63,7 @@ Add or update tests for:
 
 - item defaults, optional `part_num`, organization/type validation, and quantity validation;
 - repairment schema enums and structured spare parts;
+- repairment soft deletion, hidden-by-default reads, and repeated-delete rejection;
 - history field arrays and nullable `repairment_id`;
 - item create/update field-level history and single edit-count increments;
 - repairment create/update history with `repairment_id` and parent edit-count increments;
