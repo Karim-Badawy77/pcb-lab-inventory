@@ -2,7 +2,7 @@
 
 ## Scope
 
-Add creation-time support for the latest item/repairment API. Existing item editing and item-detail repairment management remain out of scope. The API must accept the creation payload atomically so an under-repair item cannot be left with incomplete unit repairments.
+Add creation-time support for the latest item/repairment API, plus read-only repairment visibility from item detail. Repairment editing remains out of scope. The API must accept the creation payload atomically so an under-repair item cannot be left with incomplete unit repairments.
 
 ## API additions
 
@@ -33,12 +33,19 @@ The UI should preserve entered unit data when quantity increases or decreases wh
 
 The multipart request sends the item fields normally and serializes `repairments` as JSON. The frontend does not issue follow-up repairment requests after item creation.
 
+## Item detail repairment cards
+
+When an item has repairments, the item detail page fetches and displays one read-only card per non-deleted repairment. Each card summarizes the unit serial number when present, status, repairer count, spare-part count, and latest update date. Every card links to `/repairments/:id`.
+
+The repairment detail page is read-only and displays the complete repairment record, including status, serial number when present, field-test dates, repairers, structured spare parts, updates, and linked item context. It does not provide edit or delete controls in this stage.
+
 ## Component boundaries
 
 - Keep item-level state and submission in `ItemForm`/`item-form.js`.
 - Add a focused repeatable `RepairmentUnitFields` component for one unit card and its dynamic lists.
 - Keep `CreateItemPage` responsible only for API submission and navigation.
-- Do not expose the new repairment cards when the shared form is used for editing an existing item.
+- Do not expose the new repairment creation cards when the shared form is used for editing an existing item.
+- Add dedicated read-only repairment card/detail components and route them independently from `ItemForm`.
 
 ## Verification
 
@@ -51,5 +58,7 @@ Add frontend tests for:
 - validation errors for incomplete unit cards;
 - exact `FormData` contents, including `under_repairment` and JSON `repairments`;
 - repairment model validation for `updates`.
+- item detail repairment-card rendering, hidden deleted records, and links to repairment detail;
+- read-only repairment detail rendering with linked item context.
 
 Add backend integration tests for atomic item creation with one repairment per quantity and rollback when one repairment entry is invalid.
