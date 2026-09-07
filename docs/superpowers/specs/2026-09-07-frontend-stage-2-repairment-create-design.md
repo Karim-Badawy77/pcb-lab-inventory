@@ -14,14 +14,14 @@ Add `updates`, using the same subdocument shape as `Item.updates`: `{ text: Stri
 
 When `under_repairment` is true, accept a `repairments` JSON array in the item creation request. Each entry represents one physical unit and contains:
 
-- `serial_num: String` for that unit;
+- `serial_num: String` for that unit, copied from the corresponding element of `item.serial_num[]`;
 - `status`;
 - `field_test_date: Date[]`;
 - `repairer: String[]`;
 - `spare_part: { part: String, price: Number }[]`;
 - `updates: { text: String, createdAt?: Date }[]`.
 
-The service must validate that the repairment array length equals `quantity` when under repair, create one repairment document per entry, and perform item, repairment, and initial history writes in one transaction. Existing automatic quantity synchronization must not create duplicate repairments for this creation path. Non-repairing item creation continues without repairment documents.
+The service must validate that `item.serial_num.length === quantity` and that the repairment array length equals `quantity` when under repair. It creates one repairment document per serial number, with `repairment.serial_num` copied from the matching item serial number, and performs item, repairment, and initial history writes in one transaction. Existing automatic quantity synchronization must not create duplicate repairments for this creation path. Non-repairing item creation continues without repairment documents.
 
 ## Creation UI
 

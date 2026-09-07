@@ -29,6 +29,7 @@ This stage is API-only. It updates the MongoDB models and services for richer it
 ### Repairment
 
 - Add required `item_id` reference to `Item`.
+- Add required `serial_num: String` identifying the physical unit represented by the repairment.
 - Add required status enum: `repaired`, `unrepairable`, `repairing`, or `awaiting_spare_part`.
 - Add `field_test_date: [Date]`, defaulting to an empty array.
 - Add `repairer: [String]`, defaulting to an empty array.
