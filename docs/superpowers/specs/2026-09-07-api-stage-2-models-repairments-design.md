@@ -10,7 +10,7 @@ This stage is API-only. It updates the MongoDB models and services for richer it
 
 - Rename `category` to `organization`.
 - Make `part_num` optional while retaining string trimming.
-- Add `serial_num: String`.
+- Add `serial_num: [String]`, defaulting to an empty array.
 - Add `functional: Boolean`, default `false`.
 - Add `under_repairment: Boolean`, default `false`.
 - Add `type: String`, restricted to `pcb`, `module`, or `else`.
