@@ -15,7 +15,7 @@ Add `updates`, using the same subdocument shape as `Item.updates`: `{ text: Stri
 When `under_repairment` is true, accept a `repairments` JSON array in the item creation request. Each entry represents one physical unit and contains:
 
 - optional `serial_num: String` for that unit, copied from the corresponding element of `item.serial_num[]` when provided;
-- `status`;
+- `status`, selected from `repaired`, `unrepairable`, `repairing`, or `awaiting_spare_part`;
 - `field_test_date: Date[]`;
 - `repairer: String[]`;
 - `spare_part: { part: String, price: Number }[]`;
@@ -27,7 +27,7 @@ The service must validate that the repairment array length equals `quantity` whe
 
 The new-item form adds a third inventory-state radio: `Under repair`, alongside `Stored` and `Delivered`. Under repair submits `under_repairment: true`, forces the displayed location to Lab, and hides editable warehouse, section, and pack fields.
 
-The form adds API-aligned shared item fields: organization, type select (`pcb`, `module`, `else`), quantity, and serial numbers. When quantity is greater than one, it renders one independent unit card per quantity. Each card contains its own serial number and repairment fields: status, field-test-date list, repairer list, structured spare-part rows, and update-note list.
+The form adds API-aligned shared item fields: organization, type select (`pcb`, `module`, `else`), quantity, and serial numbers. When quantity is greater than one, it renders one independent unit card per quantity. Each card contains its own serial number and repairment fields: a status select dropdown with the four API values, field-test-date list, repairer list, structured spare-part rows, and update-note list.
 
 The UI should preserve entered unit data when quantity increases or decreases where possible, remove only units beyond the new quantity, and validate every unit before submission. Required validation includes item name, positive quantity, one unit entry per quantity, valid repairment status, valid dates/prices, and required fields appropriate to the selected inventory state.
 
