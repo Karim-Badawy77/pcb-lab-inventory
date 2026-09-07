@@ -1,7 +1,7 @@
 const itemService = require("../services/item.service");
 const { removeFiles } = require("../services/file.service");
 
-const JSON_FIELDS = ["location", "tags", "updates", "removeImageIds"];
+const JSON_FIELDS = ["location", "tags", "updates", "removeImageIds", "serial_num", "repairments"];
 
 function parsePayload(body) {
     const payload = { ...body };

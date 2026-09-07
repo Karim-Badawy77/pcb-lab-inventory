@@ -4,6 +4,17 @@ import { emptyItemForm, itemToForm, toItemFormData, validateItemForm } from './i
 import ItemForm from './ItemForm.vue';
 
 describe('item form domain', () => {
+  it('serializes under-repair unit data and validates quantity cards', () => {
+    const form = {
+      ...emptyItemForm(), name: 'Board', stored: true, under_repairment: true, quantity: 2,
+      repairments: [{ status: 'repairing' }, { status: 'repaired' }]
+    };
+    expect(validateItemForm(form)).toEqual({});
+    const body = toItemFormData(form);
+    expect(body.get('under_repairment')).toBe('true');
+    expect(JSON.parse(body.get('repairments'))).toMatchObject([{ status: 'repairing' }, { status: 'repaired' }]);
+  });
+
   it('requires a full location only for stored items', () => {
     const form = {
       ...emptyItemForm(), name: 'Board', part_num: 'B-1', stored: true,
@@ -44,6 +55,14 @@ describe('item form domain', () => {
 });
 
 describe('ItemForm', () => {
+  it('renders under-repair unit cards with a status select', async () => {
+    const wrapper = mount(ItemForm, { props: { initialItem: emptyItemForm(), busy: false, creationMode: true } });
+    await wrapper.get('[value="under_repair"]').setValue();
+    await wrapper.get('[name="quantity"]').setValue('2');
+    expect(wrapper.findAll('[data-testid="repairment-unit"]').length).toBe(2);
+    expect(wrapper.findAll('[name="repairment_status"]').length).toBe(2);
+  });
+
   it('switches conditional fields and emits valid multipart-ready state', async () => {
     const wrapper = mount(ItemForm, { props: { initialItem: emptyItemForm(), busy: false } });
     expect(wrapper.find('[name="warehouse"]').exists()).toBe(true);

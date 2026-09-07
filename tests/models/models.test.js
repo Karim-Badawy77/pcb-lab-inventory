@@ -47,8 +47,10 @@ test('repairment validates status and structured spare parts', async () => {
     field_test_date: [new Date()],
     repairer: ['Ada'],
     spare_part: [{ part: 'R1', price: 2.5 }],
+    updates: [{ text: 'Bench tested' }],
   });
   await expect(repairment.validate()).resolves.toBeUndefined();
   expect(repairment.deleted).toBe(false);
+  expect(repairment.updates[0].text).toBe('Bench tested');
   await expect(new Repairment({ item_id: repairment.item_id, status: 'bad' }).validate()).rejects.toThrow();
 });

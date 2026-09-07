@@ -11,6 +11,7 @@ const {
 } = require("./inventory-state");
 const { removeFiles } = require("./file.service");
 const { syncRepairments } = require('./repairment.service');
+const Repairment = require('../models/repairment.model');
 
 const EDITABLE = [
     "name",
@@ -51,7 +52,16 @@ async function createItem(payload, files = []) {
                 ...state,
                 images: imageRecords(files),
             }).save({ session });
-            await syncRepairments(created, session);
+            if (created.under_repairment && Array.isArray(payload.repairments)) {
+                if (payload.repairments.length !== created.quantity) throw new ApiError(400, 'One repairment record is required per quantity');
+                await Repairment.create(payload.repairments.map((repairment, index) => ({
+                    ...repairment,
+                    item_id: created._id,
+                    ...(created.serial_num[index] ? { serial_num: created.serial_num[index] } : {}),
+                })), { session });
+            } else {
+                await syncRepairments(created, session);
+            }
             await History.create(
                 [
                     {

@@ -5,6 +5,7 @@ import FeedbackMessage from '@/components/FeedbackMessage.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import DeleteItemDialog from '@/features/item-detail/DeleteItemDialog.vue';
 import HistoryTimeline from '@/features/item-detail/HistoryTimeline.vue';
+import RepairmentCard from '@/features/item-detail/RepairmentCard.vue';
 import ImageGallery from '@/features/item-detail/ImageGallery.vue';
 import ItemForm from '@/features/item-form/ItemForm.vue';
 import { toItemFormData } from '@/features/item-form/item-form';
@@ -15,6 +16,7 @@ import { formatLocation } from '@/lib/inventory';
 const route = useRoute();
 const router = useRouter();
 const item = ref(null);
+const repairments = ref([]);
 const loading = ref(true);
 const busy = ref(false);
 const error = ref('');
@@ -29,7 +31,10 @@ const deleteTrigger = ref(null);
 async function loadItem() {
   loading.value = true;
   error.value = '';
-  try { item.value = await apiRequest(`/api/items/${route.params.id}`); }
+  try {
+    item.value = await apiRequest(`/api/items/${route.params.id}`);
+    try { repairments.value = (await apiRequest(`/api/repairments/item/${route.params.id}`)) || []; } catch { repairments.value = []; }
+  }
   catch (loadError) { error.value = loadError.message; }
   finally { loading.value = false; }
 }
@@ -134,6 +139,7 @@ onBeforeRouteLeave(() => !dirty.value || window.confirm('Discard your unsaved ed
 
         <section class="detail-section"><span class="eyebrow">Description</span><h2>About this board</h2><p class="prose">{{ item.description || 'No description recorded.' }}</p></section>
         <section class="detail-section"><span class="eyebrow">Field notes</span><h2>Updates</h2><div v-if="item.updates?.length" class="updates-list"><article v-for="update in item.updates" :key="update._id || update.createdAt"><p>{{ update.text }}</p><time :datetime="update.createdAt">{{ formatDate(update.createdAt) }}</time></article></div><p v-else class="muted">No update notes recorded.</p></section>
+        <section v-if="repairments.length" class="detail-section"><span class="eyebrow">Repair queue</span><h2>Unit repairments</h2><div class="repairment-grid"><RepairmentCard v-for="repairment in repairments" :key="repairment._id" :repairment="repairment" /></div></section>
         <section class="detail-section"><span class="eyebrow">Movement log</span><h2>Transaction history</h2><HistoryTimeline :history="item.history" /></section>
         <section class="danger-zone"><div><span class="eyebrow eyebrow--danger">Danger zone</span><h2>Remove from active inventory</h2><p>This action soft-deletes the record and writes a final history transaction.</p></div><button ref="deleteTrigger" type="button" class="button button--danger-outline" data-testid="open-delete" @click="openDelete">Delete item</button></section>
       </template>

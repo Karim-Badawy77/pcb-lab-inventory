@@ -35,7 +35,7 @@ describe('ItemDetailPage', () => {
 
   it('loads the item, edits it, and refreshes transaction history', async () => {
     const refreshed = { ...detail, description: 'Updated', history: [...detail.history, { _id: 'h2', date: '2026-08-31T10:00:00Z', from: detail.location, to: { warehouse: 'W1', section: 'S2', pack: 'P4' } }] };
-    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce({ ...detail, description: 'Updated' }).mockResolvedValueOnce(refreshed);
+    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce([]).mockResolvedValueOnce({ ...detail, description: 'Updated' }).mockResolvedValueOnce(refreshed).mockResolvedValueOnce([]);
     const router = testRouter();
     await router.push('/items/item-1');
     await router.isReady();
@@ -53,14 +53,14 @@ describe('ItemDetailPage', () => {
     await flushPromises();
 
     expect(apiRequest).toHaveBeenCalledWith('/api/items/item-1', { method: 'PATCH', body: expect.any(FormData) });
-    expect(apiRequest).toHaveBeenLastCalledWith('/api/items/item-1');
+    expect(apiRequest).toHaveBeenLastCalledWith('/api/repairments/item/item-1');
     expect(wrapper.text()).toContain('Updated');
     expect(wrapper.text()).toContain('P4');
     wrapper.unmount();
   });
 
   it('shows a retry state when item loading fails', async () => {
-    apiRequest.mockRejectedValueOnce(new Error('Item unavailable')).mockResolvedValueOnce(detail);
+    apiRequest.mockRejectedValueOnce(new Error('Item unavailable')).mockResolvedValueOnce(detail).mockResolvedValueOnce([]);
     const router = testRouter();
     await router.push('/items/item-1');
     const wrapper = mount(ItemDetailPage, { global: { plugins: [router] } });
@@ -72,7 +72,7 @@ describe('ItemDetailPage', () => {
   });
 
   it('soft deletes only after the exact name and returns to inventory', async () => {
-    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce({ ...detail, deleted: true });
+    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce([]).mockResolvedValueOnce({ ...detail, deleted: true });
     const router = testRouter();
     await router.push('/items/item-1');
     await router.isReady();
@@ -89,7 +89,7 @@ describe('ItemDetailPage', () => {
   });
 
   it('keeps a failed delete open with its server message', async () => {
-    apiRequest.mockResolvedValueOnce(detail).mockRejectedValueOnce(new Error('Delete failed'));
+    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce([]).mockRejectedValueOnce(new Error('Delete failed'));
     const router = testRouter();
     await router.push('/items/item-1');
     const wrapper = mount(ItemDetailPage, { global: { plugins: [router] } });
