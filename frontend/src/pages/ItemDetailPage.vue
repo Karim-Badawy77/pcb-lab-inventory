@@ -7,8 +7,6 @@ import DeleteItemDialog from '@/features/item-detail/DeleteItemDialog.vue';
 import HistoryTimeline from '@/features/item-detail/HistoryTimeline.vue';
 import RepairmentCard from '@/features/item-detail/RepairmentCard.vue';
 import ImageGallery from '@/features/item-detail/ImageGallery.vue';
-import ItemForm from '@/features/item-form/ItemForm.vue';
-import { toItemFormData } from '@/features/item-form/item-form';
 import { apiRequest } from '@/lib/api';
 import { formatDate } from '@/lib/dates';
 import { formatLocation } from '@/lib/inventory';
@@ -18,10 +16,8 @@ const router = useRouter();
 const item = ref(null);
 const repairments = ref([]);
 const loading = ref(true);
-const busy = ref(false);
 const error = ref('');
 const success = ref('');
-const editing = ref(false);
 const dirty = ref(false);
 const deleteOpen = ref(false);
 const deleteBusy = ref(false);
@@ -39,25 +35,6 @@ async function loadItem() {
   finally { loading.value = false; }
 }
 
-async function saveItem({ form, files, removeImageIds }) {
-  busy.value = true;
-  error.value = '';
-  success.value = '';
-  try {
-    await apiRequest(`/api/items/${item.value._id}`, { method: 'PATCH', body: toItemFormData(form, files, removeImageIds) });
-    dirty.value = false;
-    editing.value = false;
-    await loadItem();
-    success.value = 'Item updated.';
-  } catch (requestError) { error.value = requestError.message; }
-  finally { busy.value = false; }
-}
-
-function cancelEdit() {
-  if (dirty.value && !window.confirm('Discard your unsaved edits?')) return;
-  dirty.value = false;
-  editing.value = false;
-}
 
 function openDelete() {
   deleteError.value = '';
@@ -112,15 +89,12 @@ onBeforeRouteLeave(() => !dirty.value || window.confirm('Discard your unsaved ed
         <RouterLink class="back-link" to="/items">← Inventory</RouterLink>
         <div class="detail-title-row">
           <div><span class="part-number">{{ item.part_num }}</span><h1>{{ item.name }}</h1></div>
-          <button v-if="!editing" class="button button--lime" data-testid="edit-item" @click="editing = true">Edit item</button>
+          <RouterLink class="button button--lime" data-testid="edit-item" :to="`/items/${item._id}/edit`">Edit item</RouterLink>
         </div>
         <div class="detail-status"><StatusBadge :stored="item.stored" /><span>⌖ {{ formatLocation(item) }}</span></div>
       </header>
 
       <FeedbackMessage :message="error" /><FeedbackMessage :message="success" type="success" />
-      <ItemForm v-if="editing" :initial-item="item" :busy="busy" submit-label="Update item" @submit="saveItem" @dirty-change="dirty = true" @cancel="cancelEdit" />
-
-      <template v-else>
         <div class="detail-layout">
           <ImageGallery :images="item.images" :item-name="item.name" />
           <aside class="record-panel">
@@ -128,6 +102,7 @@ onBeforeRouteLeave(() => !dirty.value || window.confirm('Discard your unsaved ed
             <dl class="record-grid">
               <div><dt>Category</dt><dd>{{ item.category || '—' }}</dd></div>
               <div><dt>Owner</dt><dd>{{ item.owner || '—' }}</dd></div>
+              <div><dt>Quantity</dt><dd>{{ item.quantity ?? 1 }}</dd></div>
               <div><dt>Status</dt><dd>{{ item.stored ? 'Stored' : 'Delivered' }}</dd></div>
               <div><dt>{{ item.stored ? 'Location' : 'Delivered to' }}</dt><dd>{{ formatLocation(item) }}</dd></div>
               <div v-if="item.delivered_by"><dt>Delivered by</dt><dd>{{ item.delivered_by }}</dd></div>
@@ -139,10 +114,9 @@ onBeforeRouteLeave(() => !dirty.value || window.confirm('Discard your unsaved ed
 
         <section class="detail-section"><span class="eyebrow">Description</span><h2>About this board</h2><p class="prose">{{ item.description || 'No description recorded.' }}</p></section>
         <section class="detail-section"><span class="eyebrow">Field notes</span><h2>Updates</h2><div v-if="item.updates?.length" class="updates-list"><article v-for="update in item.updates" :key="update._id || update.createdAt"><p>{{ update.text }}</p><time :datetime="update.createdAt">{{ formatDate(update.createdAt) }}</time></article></div><p v-else class="muted">No update notes recorded.</p></section>
-        <section v-if="repairments.length" class="detail-section"><span class="eyebrow">Repair queue</span><h2>Unit repairments</h2><div class="repairment-grid"><RepairmentCard v-for="repairment in repairments" :key="repairment._id" :repairment="repairment" /></div></section>
+        <section class="detail-section"><span class="eyebrow">Repair queue</span><h2>Unit repairments</h2><RouterLink class="button button--ghost" :to="`/items/${item._id}/repairments/new`">Add repairment</RouterLink><div v-if="repairments.length" class="repairment-grid"><RepairmentCard v-for="repairment in repairments" :key="repairment._id" :repairment="repairment" /></div><p v-else class="muted">No repairments recorded.</p></section>
         <section class="detail-section"><span class="eyebrow">Movement log</span><h2>Transaction history</h2><HistoryTimeline :history="item.history" /></section>
         <section class="danger-zone"><div><span class="eyebrow eyebrow--danger">Danger zone</span><h2>Remove from active inventory</h2><p>This action soft-deletes the record and writes a final history transaction.</p></div><button ref="deleteTrigger" type="button" class="button button--danger-outline" data-testid="open-delete" @click="openDelete">Delete item</button></section>
-      </template>
       <DeleteItemDialog v-if="deleteOpen" :item="item" :busy="deleteBusy" :error="deleteError" @confirm="deleteItem" @close="closeDelete" />
     </template>
   </main>

@@ -33,9 +33,9 @@ function testRouter() {
 describe('ItemDetailPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('loads the item, edits it, and refreshes transaction history', async () => {
+  it('loads the item and links to the standalone editor', async () => {
     const refreshed = { ...detail, description: 'Updated', history: [...detail.history, { _id: 'h2', date: '2026-08-31T10:00:00Z', from: detail.location, to: { warehouse: 'W1', section: 'S2', pack: 'P4' } }] };
-    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce([]).mockResolvedValueOnce({ ...detail, description: 'Updated' }).mockResolvedValueOnce(refreshed).mockResolvedValueOnce([]);
+    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce([]);
     const router = testRouter();
     await router.push('/items/item-1');
     await router.isReady();
@@ -47,15 +47,7 @@ describe('ItemDetailPage', () => {
     expect(wrapper.get('.gallery-main img').attributes('src')).toBe('/uploads/front.webp');
     expect(wrapper.text()).toContain('Added to inventory');
 
-    await wrapper.get('[data-testid="edit-item"]').trigger('click');
-    await wrapper.get('[name="description"]').setValue('Updated');
-    await wrapper.get('form').trigger('submit');
-    await flushPromises();
-
-    expect(apiRequest).toHaveBeenCalledWith('/api/items/item-1', { method: 'PATCH', body: expect.any(FormData) });
-    expect(apiRequest).toHaveBeenLastCalledWith('/api/repairments/item/item-1');
-    expect(wrapper.text()).toContain('Updated');
-    expect(wrapper.text()).toContain('P4');
+    expect(wrapper.get('[data-testid="edit-item"]').attributes('href')).toBe('/items/item-1/edit');
     wrapper.unmount();
   });
 

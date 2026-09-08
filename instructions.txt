@@ -17,8 +17,9 @@
     shell run npm start
 
 - for everyday use, you can run the following shell command in the project root directory:
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", "npm start"; Set-Location .\frontend; npm start
-    or
+    Start-Process powershell -ArgumentList "-Command", "npm start"; try{ cd .\frontend; npm start } finally { cd .. }
+    
+    or for 2 separate new shells:
     Start-Process powershell -ArgumentList "-NoExit", "-Command", "npm start"; Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd .\frontend; npm start"
 
 - for more instructions on how to use the project, please refer to the README.md file in the project root directory and the frontend directory.

@@ -54,8 +54,6 @@ export function validateItemForm(form, files = [], retainedImageCount = 0) {
     });
   } else if (form.stored) {
     if (!form.location?.warehouse?.trim()) errors['location.warehouse'] = 'Warehouse is required';
-    if (!form.location?.section?.trim()) errors['location.section'] = 'Section is required';
-    if (!form.location?.pack?.trim()) errors['location.pack'] = 'Pack is required';
   } else if (!form.delivered_to?.trim()) {
     errors.delivered_to = 'Delivered to is required';
   }

@@ -66,7 +66,7 @@ function submit() {
       <h2>What is this board?</h2>
       <div class="field-grid">
         <label class="field"><span>Name *</span><input v-model="form.name" name="name" autocomplete="off"><small v-if="errors.name">{{ errors.name }}</small></label>
-        <label class="field"><span>Part number *</span><input v-model="form.part_num" name="part_num" autocomplete="off"><small v-if="errors.part_num">{{ errors.part_num }}</small></label>
+        <label class="field"><span>Part number</span><input v-model="form.part_num" name="part_num" autocomplete="off"><small v-if="errors.part_num">{{ errors.part_num }}</small></label>
       </div>
     </section>
 

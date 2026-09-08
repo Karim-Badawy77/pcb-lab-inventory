@@ -15,12 +15,12 @@ describe('item form domain', () => {
     expect(JSON.parse(body.get('repairments'))).toMatchObject([{ status: 'repairing' }, { status: 'repaired' }]);
   });
 
-  it('requires a full location only for stored items', () => {
+  it('requires only warehouse for stored items', () => {
     const form = {
       ...emptyItemForm(), name: 'Board', part_num: 'B-1', stored: true,
       location: { warehouse: 'W1', section: '', pack: 'P1' }
     };
-    expect(validateItemForm(form, [], 0)).toMatchObject({ 'location.section': 'Section is required' });
+    expect(validateItemForm(form, [], 0)).toEqual({});
 
     form.stored = false;
     form.delivered_to = 'Assembly';

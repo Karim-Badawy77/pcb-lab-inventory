@@ -72,13 +72,11 @@ itemSchema.pre("validate", function validateState() {
     if (
         this.stored &&
         !underRepair &&
-        (!this.location?.warehouse ||
-            !this.location?.section ||
-            !this.location?.pack)
+        !this.location?.warehouse
     ) {
         this.invalidate(
             "location",
-            "location warehouse, section, and pack are required for stored items",
+            "location warehouse is required for stored items",
         );
     }
     if (this.stored && this.delivered_to)

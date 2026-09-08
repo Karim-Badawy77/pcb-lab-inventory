@@ -10,8 +10,8 @@ test('delivered state clears location', () => {
     .toEqual({ stored: false, location: undefined, delivered_to: 'Lab' });
 });
 
-test('rejects incomplete stored location', () => {
-  expect(() => normalizeInventoryState({ stored: true, location: { warehouse: 'W' } })).toThrow(/location/);
+test('accepts a stored item with only warehouse location', () => {
+  expect(normalizeInventoryState({ stored: true, location: { warehouse: 'W' } })).toMatchObject({ location: { warehouse: 'W', section: null, pack: null } });
 });
 
 test('detects inventory transactions only', () => {
