@@ -108,6 +108,10 @@ function submit() {
                         errors.part_num
                     }}</small></label
                 >
+                <label v-if="!form.under_repairment" class="field"
+                    ><span>Serial numbers <em>comma separated, optional</em></span
+                    ><input v-model="form.serialNumText" name="serial_num" placeholder="SN-2026-001, SN-2026-002"
+                /></label>
             </div>
         </section>
 

@@ -25,7 +25,7 @@ async function listRepairments(itemId, { includeDeleted = false } = {}) {
   assertItemId(itemId);
   return Repairment.find({ item_id: itemId, ...(includeDeleted ? {} : { deleted: false }) }).sort({ createdAt: 1 });
 }
-async function getRepairment(id, { includeDeleted = false } = {}) { assertId(id); const row = await Repairment.findOne({ _id: id, ...(includeDeleted ? {} : { deleted: false }) }); if (!row) throw new ApiError(404, 'Repairment not found'); return row; }
+async function getRepairment(id, { includeDeleted = false } = {}) { assertId(id); const row = await Repairment.findOne({ _id: id, ...(includeDeleted ? {} : { deleted: false }) }); if (!row) throw new ApiError(404, 'Repairment not found'); const history = await History.find({ repairment_id: row._id }).sort({ date: 1 }); return { ...row.toObject(), history }; }
 
 async function updateRepairment(id, patch) {
   assertId(id);

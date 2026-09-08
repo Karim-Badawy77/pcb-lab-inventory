@@ -104,6 +104,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .field em { color: var(--muted); font-style: normal; font-weight: 500; }
 .field input, .field textarea { width: 100%; min-height: 3rem; padding: .7rem .8rem; border: 1px solid var(--line); border-radius: .6rem; color: var(--ink); background: white; }
 .field textarea { resize: vertical; }
+.input-with-action { display: flex; gap: .5rem; align-items: stretch; }
+.input-with-action input { flex: 1; min-width: 0; }
+.input-with-action .button { white-space: nowrap; }
 .field small, .field-error { color: var(--danger); }
 .segmented { padding: .25rem; display: grid; grid-template-columns: 1fr 1fr; background: #e7e5db; border-radius: .7rem; }
 .segmented--three { grid-template-columns: repeat(3, 1fr); }

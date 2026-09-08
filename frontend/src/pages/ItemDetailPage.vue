@@ -100,7 +100,7 @@ onBeforeRouteLeave(() => !dirty.value || window.confirm('Discard your unsaved ed
           <aside class="record-panel">
             <span class="eyebrow">Record details</span>
             <dl class="record-grid">
-              <div><dt>Category</dt><dd>{{ item.category || '—' }}</dd></div>
+              <div><dt>Organization</dt><dd>{{ item.organization || '—' }}</dd></div>
               <div><dt>Owner</dt><dd>{{ item.owner || '—' }}</dd></div>
               <div><dt>Quantity</dt><dd>{{ item.quantity ?? 1 }}</dd></div>
               <div><dt>Status</dt><dd>{{ item.stored ? 'Stored' : 'Delivered' }}</dd></div>
@@ -115,7 +115,7 @@ onBeforeRouteLeave(() => !dirty.value || window.confirm('Discard your unsaved ed
         <section class="detail-section"><span class="eyebrow">Description</span><h2>About this board</h2><p class="prose">{{ item.description || 'No description recorded.' }}</p></section>
         <section class="detail-section"><span class="eyebrow">Field notes</span><h2>Updates</h2><div v-if="item.updates?.length" class="updates-list"><article v-for="update in item.updates" :key="update._id || update.createdAt"><p>{{ update.text }}</p><time :datetime="update.createdAt">{{ formatDate(update.createdAt) }}</time></article></div><p v-else class="muted">No update notes recorded.</p></section>
         <section class="detail-section"><span class="eyebrow">Repair queue</span><h2>Unit repairments</h2><RouterLink class="button button--ghost" :to="`/items/${item._id}/repairments/new`">Add repairment</RouterLink><div v-if="repairments.length" class="repairment-grid"><RepairmentCard v-for="repairment in repairments" :key="repairment._id" :repairment="repairment" /></div><p v-else class="muted">No repairments recorded.</p></section>
-        <section class="detail-section"><span class="eyebrow">Movement log</span><h2>Transaction history</h2><HistoryTimeline :history="item.history" /></section>
+        <section class="detail-section"><span class="eyebrow">Logs</span><h2>Transaction history</h2><p class="muted log-hint">Listed from oldest to newest.</p><HistoryTimeline :history="item.history" /></section>
         <section class="danger-zone"><div><span class="eyebrow eyebrow--danger">Danger zone</span><h2>Remove from active inventory</h2><p>This action soft-deletes the record and writes a final history transaction.</p></div><button ref="deleteTrigger" type="button" class="button button--danger-outline" data-testid="open-delete" @click="openDelete">Delete item</button></section>
       <DeleteItemDialog v-if="deleteOpen" :item="item" :busy="deleteBusy" :error="deleteError" @confirm="deleteItem" @close="closeDelete" />
     </template>

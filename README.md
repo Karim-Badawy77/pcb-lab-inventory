@@ -1,21 +1,93 @@
-# PCB Lab Inventory API
+# PCB Lab Inventory
 
-REST API for physical PCB-lab inventory items, local image uploads, soft deletion, and automatic transaction history. It uses CommonJS, Express, Mongoose, and MongoDB database `pcb-inventory`.
+PCB Lab Inventory catalogs physical PCB-lab items, tracks storage or delivery state, records repairments, stores images, and maintains transaction history.
+
+The repository contains two independently runnable projects:
+
+- `src/` — Express, Mongoose, and MongoDB REST API
+- `frontend/` — Vue 3 and Vue Router interface
 
 ## Requirements
 
 - Node.js 24 or newer
-- A MongoDB deployment configured as a replica set (transactions do not work on a standalone server)
+- MongoDB configured as a replica set; transactions require replica-set support
 
-## Setup
+## Run locally
 
 ```powershell
 npm install
-Copy-Item .env.example .env
 npm start
 ```
 
-Configure `.env`:
+In a second terminal:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`. The frontend defaults to `http://localhost:3000` for the API. Configure another origin in `frontend/public/config.js`:
+
+```js
+window.APP_CONFIG = { API_BASE_URL: "http://localhost:3000" };
+```
+
+## Inventory features
+
+Items support names, optional part numbers, quantity, owner, organization, type, tags, descriptions, update notes, images, soft deletion, and transaction history. Items can be stored, delivered, or under repair.
+
+For stored items, warehouse is required while section and pack are optional. For delivered items, `delivered_to` is required. Part number and other metadata are optional. Images accept JPEG, PNG, and WebP files, with a maximum of 10 images and 5 MB per image.
+
+Under-repair items remain stored in the lab and can contain one repairment record per quantity unit, including optional serial numbers and repairment information.
+
+## Repairment features
+
+Repairments belong to an item and require only a status: `repairing`, `awaiting_spare_part`, `repaired`, or `unrepairable`. Serial number, field-test dates, repairers, spare parts, prices, and update notes are optional. Repairments have dedicated details, edit, and soft-delete flows.
+
+## Frontend routes
+
+| Route | Purpose |
+|---|---|
+| `/items` | Inventory list |
+| `/items/new` | Add an item |
+| `/items/:id` | Item details, quantity, history, images, and repairments |
+| `/items/:id/edit` | Edit an item |
+| `/items/:itemId/repairments/new` | Add a repairment |
+| `/repairments/:id` | Repairment details |
+| `/repairments/:id/edit` | Edit a repairment |
+
+Item detail repairment cards show only serial number and status; selecting a card opens full repairment details.
+
+## API endpoints
+
+### Items
+
+| Method | Route | Purpose |
+|---|---|---|
+| `POST` | `/api/items` | Create an item |
+| `GET` | `/api/items` | List active items with pagination |
+| `GET` | `/api/items/:id` | Get an item with history |
+| `PATCH` | `/api/items/:id` | Update item fields, state, or images |
+| `DELETE` | `/api/items/:id` | Soft-delete an item |
+
+List parameters are `page`, `limit` (maximum 100), and `includeDeleted=true`.
+
+### Repairments
+
+| Method | Route | Purpose |
+|---|---|---|
+| `POST` | `/api/repairments/item/:itemId` | Create a repairment |
+| `GET` | `/api/repairments/item/:itemId` | List an item’s repairments |
+| `GET` | `/api/repairments/:id` | Get a repairment |
+| `PATCH` | `/api/repairments/:id` | Update a repairment |
+| `DELETE` | `/api/repairments/:id` | Soft-delete a repairment |
+
+Successful responses use `{ "success": true, "data": ... }`; errors use `{ "success": false, "message": "..." }`.
+
+## Configuration
+
+Create a root `.env` file as needed:
 
 ```dotenv
 PORT=3000
@@ -27,97 +99,20 @@ ALLOWED_IMAGE_TYPES=image/jpeg,image/png,image/webp
 
 Uploaded files are stored in `uploads/` and served from `/uploads/<filename>`.
 
-The API listens on `http://localhost:3000` by default and allows requests from any CORS origin. It does not serve the Vue application; the independently deployable frontend is documented in [`frontend/README.md`](frontend/README.md).
+## Tests and production build
 
-## Frontend
-
-The Vue interface is a separate project under `frontend/`. To run both projects on one machine for development, start the API here:
-
-```powershell
-npm install
-npm test
-npm start
-```
-
-Then start Vite from `frontend/` in another terminal. The API and frontend keep separate dependencies, tests, and deployment lifecycles.
-
-## API
-
-| Method | Route | Behavior |
-|---|---|---|
-| `POST` | `/api/items` | Create an item and its initial history transaction |
-| `GET` | `/api/items` | List active items with pagination |
-| `GET` | `/api/items/:id` | Get one item with its transaction history |
-| `PATCH` | `/api/items/:id` | Update metadata, state, updates, tags, or images |
-| `DELETE` | `/api/items/:id` | Soft-delete and write `to: "deleted"` history |
-
-List query parameters are `page` (default `1`), `limit` (default `20`, maximum `100`), and `includeDeleted=true`. Item lookup also accepts `includeDeleted=true`.
-
-### Create with two images
-
-```bash
-curl -X POST http://localhost:3000/api/items \
-  -F "name=Controller board" \
-  -F "part_num=PCB-001" \
-  -F "stored=true" \
-  -F 'location={"warehouse":"W1","section":"S2","pack":"P3"}' \
-  -F 'tags=["controller","pcb"]' \
-  -F "images=@front.png" \
-  -F "images=@back.png"
-```
-
-All fields may be sent as multipart fields. `location`, `tags`, `updates`, and `removeImageIds` must be JSON when sent via multipart.
-
-### Edit metadata
-
-```bash
-curl -X PATCH http://localhost:3000/api/items/ITEM_ID \
-  -H "Content-Type: application/json" \
-  -d '{"description":"Inspected and labeled","tags":["controller","tested"]}'
-```
-
-Metadata changes do not create history transactions.
-
-### Deliver and return an item
-
-```bash
-curl -X PATCH http://localhost:3000/api/items/ITEM_ID \
-  -H "Content-Type: application/json" \
-  -d '{"stored":false,"delivered_to":"Assembly Lab"}'
-
-curl -X PATCH http://localhost:3000/api/items/ITEM_ID \
-  -H "Content-Type: application/json" \
-  -d '{"stored":true,"location":{"warehouse":"W1","section":"S2","pack":"P4"}}'
-```
-
-Delivering clears `location`; returning to storage clears `delivered_to`. Both operations create history.
-
-### Remove one image
-
-```bash
-curl -X PATCH http://localhost:3000/api/items/ITEM_ID \
-  -F 'removeImageIds=["IMAGE_SUBDOCUMENT_ID"]'
-```
-
-New images can be appended in the same request using repeated `images` fields.
-
-### Read and delete
-
-```bash
-curl http://localhost:3000/api/items/ITEM_ID
-curl "http://localhost:3000/api/items?page=1&limit=20"
-curl -X DELETE http://localhost:3000/api/items/ITEM_ID
-curl "http://localhost:3000/api/items?includeDeleted=true"
-```
-
-## Responses
-
-Successful responses use `{ "success": true, "data": ... }`. Errors use `{ "success": false, "message": "..." }` and may include validation details.
-
-## Tests
+API:
 
 ```powershell
 npm test
 ```
 
-Tests use `mongodb-memory-server` in replica-set mode. Its first run downloads a MongoDB binary and can therefore take several minutes.
+Frontend:
+
+```powershell
+cd frontend
+npm test
+npm run build
+```
+
+The production frontend is written to `frontend/dist/`. Configure the static server to fall back to `index.html` for client-side routes.

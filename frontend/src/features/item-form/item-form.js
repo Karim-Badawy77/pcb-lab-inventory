@@ -5,7 +5,7 @@ export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 export function emptyItemForm() {
   return {
     name: '', part_num: '', stored: true, under_repairment: false, organization: '', type: '', quantity: 1,
-    serial_num: [], repairments: [],
+    serial_num: [], serialNumText: '', repairments: [],
     location: { warehouse: '', section: '', pack: '' },
     delivered_to: '', delivered_by: '', owner: '', description: '',
     tagsText: '', updates: [], newUpdateText: ''
@@ -23,6 +23,7 @@ export function itemToForm(item = {}) {
     type: item.type || '',
     quantity: item.quantity || 1,
     serial_num: Array.isArray(item.serial_num) ? [...item.serial_num] : [],
+    serialNumText: Array.isArray(item.serial_num) ? item.serial_num.join(', ') : '',
     repairments: Array.isArray(item.repairments) ? item.repairments.map((repairment) => ({ ...repairment })) : [],
     location: {
       warehouse: item.location?.warehouse || '',
@@ -82,7 +83,7 @@ export function toItemFormData(form, files = [], removeImageIds = []) {
   body.append('quantity', String(Number(form.quantity) || 1));
   const serials = form.under_repairment
     ? (form.repairments || []).map((unit) => String(unit.serial_num || '').trim())
-    : (form.serial_num || []);
+    : String(form.serialNumText ?? '').split(',').map((serial) => serial.trim()).filter(Boolean);
   body.append('serial_num', JSON.stringify(serials));
   appendIfPresent(body, 'owner', form.owner);
   appendIfPresent(body, 'organization', form.organization);
