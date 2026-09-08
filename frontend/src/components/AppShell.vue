@@ -3,7 +3,7 @@
         <header class="site-header">
             <RouterLink class="brand" to="/items"
                 ><span class="brand-mark">
-                    <img :src="'/assets/PCB Logo1.png'" alt="PCB LAB logo" />
+                    <img src="/assets/PCB Logo1.png" alt="PCB LAB logo" />
                 </span>
                 <span>
                     <strong>PCB LAB</strong><small>Inventory</small></span
