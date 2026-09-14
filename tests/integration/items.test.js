@@ -42,6 +42,15 @@ test('lists, updates delivery state, and soft deletes', async () => {
   expect((await request(app).get('/api/items?includeDeleted=true')).body.data.total).toBe(1);
 });
 
+test('item update notes are persisted', async () => {
+  const created = await createStoredItem();
+  const updated = await request(app).patch(`/api/items/${created.body.data._id}`)
+    .field('updates', JSON.stringify([{ text: 'Checked under microscope' }]));
+
+  expect(updated.status).toBe(200);
+  expect(updated.body.data.updates).toEqual(expect.arrayContaining([expect.objectContaining({ text: 'Checked under microscope' })]));
+});
+
 test('returns validation errors in stable envelope', async () => {
   const response = await request(app).post('/api/items').send({ name: 'Bad', stored: false });
   expect(response.status).toBe(400);

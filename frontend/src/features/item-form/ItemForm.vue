@@ -69,6 +69,7 @@ function submit() {
         form,
         files.value,
         retainedImageCount.value,
+        props.creationMode,
     );
     if (Object.keys(errors.value).length) return;
     emit("submit", {

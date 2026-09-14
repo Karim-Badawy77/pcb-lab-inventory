@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { formatDate } from '@/lib/dates';
 
 const props = defineProps({ history: { type: Array, default: () => [] } });
-const rows = computed(() => [...props.history].sort((left, right) => new Date(left.date) - new Date(right.date)));
+const rows = computed(() => [...props.history].sort((left, right) => new Date(right.date) - new Date(left.date)));
 
 function valueLabel(value) {
   if (value === null || value === undefined || value === '') return 'None';

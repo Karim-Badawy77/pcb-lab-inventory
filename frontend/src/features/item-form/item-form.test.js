@@ -80,4 +80,30 @@ describe('ItemForm', () => {
       name: 'Controller', part_num: 'PCB-1', stored: false, delivered_to: 'Assembly'
     });
   });
+
+  it('allows update notes on under-repair items in edit mode', async () => {
+    const wrapper = mount(ItemForm, {
+      props: { initialItem: { ...emptyItemForm(), name: 'Controller', under_repairment: true, stored: true, location: { warehouse: 'lab', section: '', pack: '' } }, busy: false }
+    });
+
+    await wrapper.get('[name="new_update"]').setValue('Checked after repair');
+    await wrapper.get('form').trigger('submit');
+
+    expect(wrapper.emitted('submit')).toHaveLength(1);
+  });
+
+  it.each([
+    ['stored', { stored: true, location: { warehouse: 'W1', section: 'S1', pack: 'P1' } }],
+    ['delivered', { stored: false, delivered_to: 'Assembly' }],
+    ['under repair', { stored: true, under_repairment: true, location: { warehouse: 'lab', section: '', pack: '' } }]
+  ])('allows update notes for %s items', async (_state, itemState) => {
+    const wrapper = mount(ItemForm, {
+      props: { initialItem: { ...emptyItemForm(), name: 'Controller', ...itemState }, busy: false }
+    });
+
+    await wrapper.get('[name="new_update"]').setValue('Added a note');
+    await wrapper.get('form').trigger('submit');
+
+    expect(wrapper.emitted('submit')).toHaveLength(1);
+  });
 });

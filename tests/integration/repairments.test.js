@@ -35,6 +35,20 @@ test('repairment updates increment item count and record linked field history', 
   expect(await History.exists({ item_id: item._id, repairment_id: created.body.data._id, 'fields.field_name': 'status' })).toBeTruthy();
 });
 
+test('repairment update notes are persisted', async () => {
+  const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W', section: 'S', pack: 'P' } });
+  const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing' });
+  const updated = await request(app).patch(`/api/repairments/${created.body.data._id}`).send({ updates: [{ text: 'Replaced regulator' }] });
+
+  expect(updated.status).toBe(200);
+  expect(updated.body.data.updates).toEqual(expect.arrayContaining([expect.objectContaining({ text: 'Replaced regulator' })]));
+  const second = await request(app).patch(`/api/repairments/${created.body.data._id}`).send({ updates: [{ text: 'Verified output' }] });
+  expect(second.body.data.updates).toEqual(expect.arrayContaining([
+    expect.objectContaining({ text: 'Replaced regulator' }),
+    expect.objectContaining({ text: 'Verified output' })
+  ]));
+});
+
 test('repairment soft delete is hidden and cannot be repeated', async () => {
   const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W', section: 'S', pack: 'P' } });
   const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing' });

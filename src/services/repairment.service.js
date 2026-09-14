@@ -5,7 +5,7 @@ const History = require('../models/history.model');
 const ApiError = require('../utils/api-error');
 const { buildFieldChanges, plain } = require('./history.service');
 
-const EDITABLE = ['status', 'field_test_date', 'repairer', 'spare_part'];
+const EDITABLE = ['status', 'field_test_date', 'repairer', 'spare_part', 'updates'];
 function assertId(id) { if (!mongoose.isObjectIdOrHexString(id)) throw new ApiError(400, 'Invalid repairment id'); }
 function assertItemId(id) { if (!mongoose.isObjectIdOrHexString(id)) throw new ApiError(400, 'Invalid item id'); }
 
@@ -33,7 +33,12 @@ async function updateRepairment(id, patch) {
     const repairment = await Repairment.findOne({ _id: id, deleted: false }).session(session);
     if (!repairment) throw new ApiError(404, 'Repairment not found');
     const before = repairment.toObject();
-    for (const key of EDITABLE) if (Object.hasOwn(patch, key)) repairment[key] = patch[key];
+    for (const key of EDITABLE) {
+      if (!Object.hasOwn(patch, key)) continue;
+      repairment[key] = key === 'updates'
+        ? [...(repairment.updates || []), ...(patch.updates || [])]
+        : patch[key];
+    }
     const fields = buildFieldChanges(before, repairment.toObject(), EDITABLE);
     if (!fields.length) return repairment;
     await repairment.save({ session });

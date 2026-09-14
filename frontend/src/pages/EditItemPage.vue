@@ -49,7 +49,6 @@ async function save(payload) {
             v-if="item"
             :initial-item="itemToForm(item)"
             :busy="busy"
-            creation-mode
             submit-label="Update item"
             @submit="save"
         />

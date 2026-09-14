@@ -44,10 +44,10 @@ export function parseTags(tagsText) {
   return [...new Set(String(tagsText || '').split(',').map((tag) => tag.trim()).filter(Boolean))];
 }
 
-export function validateItemForm(form, files = [], retainedImageCount = 0) {
+export function validateItemForm(form, files = [], retainedImageCount = 0, validateRepairments = true) {
   const errors = {};
   if (!form.name?.trim()) errors.name = 'Name is required';
-  if (form.under_repairment) {
+  if (form.under_repairment && validateRepairments) {
     if (!Number.isInteger(Number(form.quantity)) || Number(form.quantity) < 1) errors.quantity = 'Quantity must be a positive whole number';
     if ((form.repairments || []).length !== Number(form.quantity)) errors.repairments = 'Add one repairment record per unit';
     (form.repairments || []).forEach((unit, index) => {

@@ -15,7 +15,7 @@ onMounted(async () => { try { repairment.value = await apiRequest(`/api/repairme
       <section class="detail-section"><dl class="record-grid"><div><dt>Field tests</dt><dd>{{ repairment.field_test_date?.map((date) => formatDate(date, { dateStyle: 'medium', timeStyle: 'short' })).join(', ') || '—' }}</dd></div><div><dt>Repairers</dt><dd>{{ repairment.repairer?.join(', ') || '—' }}</dd></div></dl></section>
       <section class="detail-section"><span class="eyebrow">Spare parts</span><div v-if="repairment.spare_part?.length" class="updates-list"><article v-for="part in repairment.spare_part" :key="`${part.part}-${part.price}`"><p>{{ part.part }} · {{ part.price }}</p></article></div><p v-else class="muted">No spare parts recorded.</p></section>
       <section class="detail-section"><span class="eyebrow">Updates</span><div v-if="repairment.updates?.length" class="updates-list"><article v-for="update in repairment.updates" :key="update._id || update.createdAt"><p>{{ update.text }}</p><time :datetime="update.createdAt">{{ formatDate(update.createdAt) }}</time></article></div><p v-else class="muted">No updates recorded.</p></section>
-      <section class="detail-section"><span class="eyebrow">Logs</span><h2>Repairment logs</h2><p class="muted log-hint">Listed from oldest to newest.</p><HistoryTimeline :history="repairment.history" /></section>
+      <section class="detail-section"><span class="eyebrow">Logs</span><h2>Repairment logs</h2><p class="muted log-hint">Listed from newest to oldest.</p><HistoryTimeline :history="repairment.history" /></section>
     </template>
   </main>
 </template>

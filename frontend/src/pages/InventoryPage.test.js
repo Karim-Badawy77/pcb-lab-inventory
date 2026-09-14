@@ -25,6 +25,10 @@ const items = [
   {
     _id: '2', name: 'Sensor Board', part_num: 'SNS-018', stored: false, category: 'Sensor',
     delivered_to: 'Assembly', tags: ['sensor'], images: []
+  },
+  {
+    _id: '3', name: 'Repair Board', part_num: 'REP-007', stored: true, under_repairment: true,
+    category: 'Control', location: { warehouse: 'lab' }, tags: ['repair'], images: []
   }
 ];
 
@@ -45,6 +49,21 @@ describe('InventoryPage', () => {
     expect(wrapper.text()).toContain('Sensor Board');
     await wrapper.get('[data-status="stored"]').trigger('click');
     expect(wrapper.text()).toContain('No items match');
+  });
+
+  it('filters inventory items under repairment', async () => {
+    fetchAllItems.mockResolvedValue(items);
+    const router = testRouter();
+    await router.push('/items');
+    await router.isReady();
+    const wrapper = mount(InventoryPage, { global: { plugins: [router] } });
+    await flushPromises();
+
+    await wrapper.get('[data-status="repairing"]').trigger('click');
+
+    expect(wrapper.text()).toContain('Repair Board');
+    expect(wrapper.text()).not.toContain('Motor Controller');
+    expect(wrapper.text()).not.toContain('Sensor Board');
   });
 
   it('shows a retry action after a loading failure', async () => {

@@ -48,7 +48,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .button:disabled { cursor: wait; opacity: .6; }
 .button--lime { color: var(--green); background: var(--lime); }
 .button--primary { color: white; background: var(--green); }
-.button--ghost { color: var(--green); background: transparent; border-color: var(--green); }
+.button--ghost { color: var(--green); background: transparent; border-color: var(--green); margin-bottom: 1rem; }
 .button--danger { color: white; background: var(--danger); }
 .button--danger-outline { color: var(--danger); background: transparent; border-color: var(--danger); }
 .hero-add { width: 3rem; height: 3rem; padding: 0; border-radius: 50%; font-size: 0; flex: none; }
@@ -76,6 +76,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .detail-status .status-badge { position: static; }
 .status-badge--stored { color: #184a2c; background: rgb(222 242 218 / 92%); }
 .status-badge--delivered { color: #765014; background: rgb(255 235 181 / 94%); }
+.status-badge--repairing { color: #5b3f76; background: rgb(232 218 247 / 94%); }
 .pcb-placeholder { position: absolute; inset: 0; display: grid; place-items: center; color: #e9f3ea; background-color: #526d5b; background-image: radial-gradient(circle at 18% 22%, #d7f04b 0 .23rem, transparent .27rem), radial-gradient(circle at 76% 68%, #d7f04b 0 .23rem, transparent .27rem), linear-gradient(35deg, transparent 47%, rgb(215 240 75 / 38%) 48% 50%, transparent 51%), linear-gradient(145deg, transparent 47%, rgb(215 240 75 / 25%) 48% 50%, transparent 51%); }
 .pcb-placeholder b { padding: .6rem .8rem; border: 1px solid rgb(255 255 255 / 45%); border-radius: .4rem; letter-spacing: .18em; }
 .card-copy { padding: 1rem; }
@@ -156,6 +157,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .tag-row span { padding: .35rem .5rem; color: var(--green-2); background: #e8eadf; border-radius: .4rem; font-size: .7rem; }
 .detail-section { margin: 0 1rem 1rem; }
 .detail-section h2 { margin: .25rem 0 1rem; font-family: Georgia, serif; font-size: 1.7rem; font-weight: 500; }
+.repairment-grid { display: grid; gap: .75rem; }
+.repairment-card { position: relative; display: flex; align-items: center; gap: .85rem; min-height: 5.5rem; padding: 1rem 1.1rem; overflow: hidden; color: inherit; background: linear-gradient(135deg, #fffdf8, #f5f3e9); border: 1px solid var(--line); border-radius: 1rem; box-shadow: 0 8px 22px rgb(31 54 39 / 7%); text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.repairment-card::before { width: .25rem; position: absolute; inset: .9rem auto .9rem 0; border-radius: 0 .4rem .4rem 0; background: var(--green); content: ''; }
+.repairment-card:hover { border-color: #b7c79c; box-shadow: 0 12px 28px rgb(31 54 39 / 12%); transform: translateY(-2px); }
+.repairment-card__content { min-width: 0; flex: 1; }
+.repairment-card__eyebrow { display: block; color: var(--muted); font-size: .62rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.repairment-card__eyebrow span { color: var(--lime); }
+.repairment-card h3 { margin: .35rem 0 0; overflow-wrap: anywhere; font-family: Georgia, serif; font-size: 1.15rem; font-weight: 500; }
+.status-chip { flex: none; padding: .4rem .6rem; color: #765014; background: #ffebb5; border: 1px solid rgb(118 80 20 / 15%); border-radius: 99px; font-size: .62rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.repairment-card--repaired::before { background: #5b8a4a; }
+.repairment-card--unrepairable::before { background: #b45145; }
+.repairment-card--awaiting_spare_part::before { background: #c28a27; }
+.repairment-card__arrow { flex: none; color: var(--green); font-size: 1.2rem; font-weight: 700; }
 .prose { max-width: 50rem; color: #3f4c43; line-height: 1.7; white-space: pre-wrap; }
 .muted { color: var(--muted); }
 .updates-list { display: grid; gap: .6rem; }
