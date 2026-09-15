@@ -1,0 +1,23 @@
+<script setup>
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import FeedbackMessage from '@/components/FeedbackMessage.vue';
+import { apiRequest } from '@/lib/api';
+import { formatDate } from '@/lib/dates';
+import HistoryTimeline from '@/features/item-detail/HistoryTimeline.vue';
+const route = useRoute(); const repairment = ref(null); const error = ref(''); const loading = ref(true);
+function statusLabel(status) { return String(status || '').replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); }
+onMounted(async () => { try { repairment.value = await apiRequest(`/api/repairments/${route.params.id}`); try { const item = await apiRequest(`/api/items/${repairment.value.item_id}`); repairment.value.history = (item.history || []).filter((row) => String(row.repairment_id) === String(repairment.value._id)); } catch { /* keep embedded repairment history */ } } catch (requestError) { error.value = requestError.message; } finally { loading.value = false; } });
+</script>
+<template>
+  <main class="page detail-page"><FeedbackMessage :message="error" />
+    <div v-if="loading" class="state-panel"><p>Loading repairment…</p></div>
+    <template v-else-if="repairment"><header class="detail-heading"><RouterLink class="back-link" :to="`/items/${repairment.item_id}`" data-testid="parent-item-link">← Parent item</RouterLink><span class="eyebrow">Repairment detail</span><div class="detail-title-row"><div><h1>{{ repairment.serial_num || 'Unit without serial number' }}</h1><span class="status-badge" :class="`status-badge--${repairment.status}`" data-testid="repairment-status-badge">{{ statusLabel(repairment.status) }}</span></div><RouterLink class="button button--lime" :to="`/repairments/${repairment._id}/edit`">Edit repairment</RouterLink></div></header>
+      <section v-if="repairment.status === 'delivered'" class="detail-section" data-testid="delivery-section"><span class="eyebrow">Delivery</span><dl class="record-grid"><div><dt>Delivered by</dt><dd>{{ repairment.delivered_by || '—' }}</dd></div><div><dt>To</dt><dd>{{ repairment.delivered_to || '—' }}</dd></div><div><dt>At</dt><dd>{{ formatDate(repairment.delivered_at, { dateStyle: 'medium', timeStyle: 'short' }) }}</dd></div></dl></section>
+      <section class="detail-section"><dl class="record-grid"><div><dt>Field tests</dt><dd>{{ repairment.field_test_date?.map((date) => formatDate(date, { dateStyle: 'medium' })).join(', ') || '—' }}</dd></div><div><dt>Repairers</dt><dd>{{ repairment.repairer?.join(', ') || '—' }}</dd></div></dl></section>
+      <section class="detail-section"><span class="eyebrow">Spare parts</span><div v-if="repairment.spare_part?.length" class="updates-list"><article v-for="part in repairment.spare_part" :key="`${part.part}-${part.price}`"><p>{{ part.part }} · {{ part.price }}</p></article></div><p v-else class="muted">No spare parts recorded.</p></section>
+      <section class="detail-section"><span class="eyebrow">Updates</span><div v-if="repairment.updates?.length" class="updates-list"><article v-for="update in repairment.updates" :key="update._id || update.createdAt"><p>{{ update.text }}</p><time :datetime="update.createdAt">{{ formatDate(update.createdAt) }}</time></article></div><p v-else class="muted">No updates recorded.</p></section>
+      <section class="detail-section"><span class="eyebrow">Logs</span><h2>Repairment logs</h2><p class="muted log-hint">Listed from newest to oldest.</p><HistoryTimeline :history="repairment.history" /></section>
+    </template>
+  </main>
+</template>

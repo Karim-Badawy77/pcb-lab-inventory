@@ -18,6 +18,7 @@ export function filterItems(items, criteria = {}) {
     if (query && !searchable.includes(query)) return false;
     if (status === 'stored' && !item.stored) return false;
     if (status === 'delivered' && item.stored) return false;
+    if (status === 'repairing' && !item.under_repairment) return false;
     if (category && normalizeSearch(item.category) !== category) return false;
     if (warehouse && normalizeSearch(item.location?.warehouse) !== warehouse) return false;
     if (tag && !(item.tags || []).some((value) => normalizeSearch(value) === tag)) return false;

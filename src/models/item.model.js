@@ -8,11 +8,13 @@ const locationSchema = new mongoose.Schema(
     },
     { _id: false },
 );
+
 const imageSchema = new mongoose.Schema({
     path: { type: String, required: true },
     originalName: { type: String, required: true },
     uploadedAt: { type: Date, default: Date.now },
 });
+
 const updateSchema = new mongoose.Schema({
     text: { type: String, required: true, trim: true },
     createdAt: { type: Date, default: Date.now },
@@ -25,12 +27,23 @@ const itemSchema = new mongoose.Schema(
         deleted: { type: Boolean, default: false },
         location: { type: locationSchema },
         owner: { type: String, trim: true },
-        category: { type: String, trim: true },
+        organization: { type: String, trim: true },
+        serial_num: { type: [String], default: [] },
+        functional: { type: Boolean, default: false },
+        under_repairment: { type: Boolean, default: false },
+        type: { type: String, enum: ["pcb", "module", "else"] },
+        edit_count: { type: Number, default: 0, min: 0 },
+        quantity: {
+            type: Number,
+            default: 1,
+            min: 1,
+            validate: Number.isInteger,
+        },
         description: { type: String, trim: true },
         tags: { type: [String], default: [] },
         updates: { type: [updateSchema], default: [] },
         name: { type: String, required: true, trim: true },
-        part_num: { type: String, required: true, trim: true },
+        part_num: { type: String, trim: true },
         delivered_by: { type: String, trim: true },
         delivered_to: {
             type: String,
@@ -50,15 +63,20 @@ const itemSchema = new mongoose.Schema(
 );
 
 itemSchema.pre("validate", function validateState() {
+    const underRepair =
+        this.under_repairment &&
+        this.stored &&
+        this.location?.warehouse === "lab" &&
+        this.location.section == null &&
+        this.location.pack == null;
     if (
         this.stored &&
-        (!this.location?.warehouse ||
-            !this.location?.section ||
-            !this.location?.pack)
+        !underRepair &&
+        !this.location?.warehouse
     ) {
         this.invalidate(
             "location",
-            "location warehouse, section, and pack are required for stored items",
+            "location warehouse is required for stored items",
         );
     }
     if (this.stored && this.delivered_to)
@@ -72,6 +90,7 @@ itemSchema.pre("validate", function validateState() {
             "delivered_to is required for delivered items",
         );
 });
+
 itemSchema.index({ deleted: 1, "dates.created": -1 });
 itemSchema.index({ part_num: 1 });
 

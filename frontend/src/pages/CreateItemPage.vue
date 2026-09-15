@@ -49,6 +49,6 @@ onBeforeRouteLeave(() => !dirty.value || submitted.value || window.confirm('Disc
       <p>Document the board, assign its current state, and add clear photos.</p>
     </header>
     <FeedbackMessage :message="error" />
-    <ItemForm :initial-item="emptyItemForm()" :busy="busy" submit-label="Create item" @submit="createItem" @dirty-change="setDirty" />
+    <ItemForm :initial-item="emptyItemForm()" :busy="busy" creation-mode submit-label="Create item" @submit="createItem" @dirty-change="setDirty" />
   </main>
 </template>

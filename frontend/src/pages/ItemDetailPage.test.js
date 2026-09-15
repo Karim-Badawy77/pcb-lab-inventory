@@ -33,9 +33,9 @@ function testRouter() {
 describe('ItemDetailPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('loads the item, edits it, and refreshes transaction history', async () => {
+  it('loads the item and links to the standalone editor', async () => {
     const refreshed = { ...detail, description: 'Updated', history: [...detail.history, { _id: 'h2', date: '2026-08-31T10:00:00Z', from: detail.location, to: { warehouse: 'W1', section: 'S2', pack: 'P4' } }] };
-    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce({ ...detail, description: 'Updated' }).mockResolvedValueOnce(refreshed);
+    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce([]);
     const router = testRouter();
     await router.push('/items/item-1');
     await router.isReady();
@@ -47,20 +47,12 @@ describe('ItemDetailPage', () => {
     expect(wrapper.get('.gallery-main img').attributes('src')).toBe('/uploads/front.webp');
     expect(wrapper.text()).toContain('Added to inventory');
 
-    await wrapper.get('[data-testid="edit-item"]').trigger('click');
-    await wrapper.get('[name="description"]').setValue('Updated');
-    await wrapper.get('form').trigger('submit');
-    await flushPromises();
-
-    expect(apiRequest).toHaveBeenCalledWith('/api/items/item-1', { method: 'PATCH', body: expect.any(FormData) });
-    expect(apiRequest).toHaveBeenLastCalledWith('/api/items/item-1');
-    expect(wrapper.text()).toContain('Updated');
-    expect(wrapper.text()).toContain('P4');
+    expect(wrapper.get('[data-testid="edit-item"]').attributes('href')).toBe('/items/item-1/edit');
     wrapper.unmount();
   });
 
   it('shows a retry state when item loading fails', async () => {
-    apiRequest.mockRejectedValueOnce(new Error('Item unavailable')).mockResolvedValueOnce(detail);
+    apiRequest.mockRejectedValueOnce(new Error('Item unavailable')).mockResolvedValueOnce(detail).mockResolvedValueOnce([]);
     const router = testRouter();
     await router.push('/items/item-1');
     const wrapper = mount(ItemDetailPage, { global: { plugins: [router] } });
@@ -71,8 +63,20 @@ describe('ItemDetailPage', () => {
     expect(wrapper.text()).toContain('Motor Controller');
   });
 
+  it('excludes repairment-linked entries from item logs', async () => {
+    const itemWithRepairmentLog = { ...detail, history: [...detail.history, { _id: 'repair-log', repairment_id: 'repair-1', date: '2026-08-30T12:00:00Z', fields: [{ field_name: 'status', from: 'repairing', to: 'repaired' }] }] };
+    apiRequest.mockResolvedValueOnce(itemWithRepairmentLog).mockResolvedValueOnce([]);
+    const router = testRouter();
+    await router.push('/items/item-1');
+    await router.isReady();
+    const wrapper = mount(ItemDetailPage, { global: { plugins: [router] } });
+    await flushPromises();
+
+    expect(wrapper.get('.detail-section:last-of-type').text()).not.toContain('repair-1');
+  });
+
   it('soft deletes only after the exact name and returns to inventory', async () => {
-    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce({ ...detail, deleted: true });
+    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce([]).mockResolvedValueOnce({ ...detail, deleted: true });
     const router = testRouter();
     await router.push('/items/item-1');
     await router.isReady();
@@ -89,7 +93,7 @@ describe('ItemDetailPage', () => {
   });
 
   it('keeps a failed delete open with its server message', async () => {
-    apiRequest.mockResolvedValueOnce(detail).mockRejectedValueOnce(new Error('Delete failed'));
+    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce([]).mockRejectedValueOnce(new Error('Delete failed'));
     const router = testRouter();
     await router.push('/items/item-1');
     const wrapper = mount(ItemDetailPage, { global: { plugins: [router] } });

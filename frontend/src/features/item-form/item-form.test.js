@@ -4,12 +4,23 @@ import { emptyItemForm, itemToForm, toItemFormData, validateItemForm } from './i
 import ItemForm from './ItemForm.vue';
 
 describe('item form domain', () => {
-  it('requires a full location only for stored items', () => {
+  it('serializes under-repair unit data and validates quantity cards', () => {
+    const form = {
+      ...emptyItemForm(), name: 'Board', stored: true, under_repairment: true, quantity: 2,
+      repairments: [{ status: 'repairing' }, { status: 'repaired' }]
+    };
+    expect(validateItemForm(form)).toEqual({});
+    const body = toItemFormData(form);
+    expect(body.get('under_repairment')).toBe('true');
+    expect(JSON.parse(body.get('repairments'))).toMatchObject([{ status: 'repairing' }, { status: 'repaired' }]);
+  });
+
+  it('requires only warehouse for stored items', () => {
     const form = {
       ...emptyItemForm(), name: 'Board', part_num: 'B-1', stored: true,
       location: { warehouse: 'W1', section: '', pack: 'P1' }
     };
-    expect(validateItemForm(form, [], 0)).toMatchObject({ 'location.section': 'Section is required' });
+    expect(validateItemForm(form, [], 0)).toEqual({});
 
     form.stored = false;
     form.delivered_to = 'Assembly';
@@ -44,6 +55,14 @@ describe('item form domain', () => {
 });
 
 describe('ItemForm', () => {
+  it('renders under-repair unit cards with a status select', async () => {
+    const wrapper = mount(ItemForm, { props: { initialItem: emptyItemForm(), busy: false, creationMode: true } });
+    await wrapper.get('[value="under_repair"]').setValue();
+    await wrapper.get('[name="quantity"]').setValue('2');
+    expect(wrapper.findAll('[data-testid="repairment-unit"]').length).toBe(2);
+    expect(wrapper.findAll('[name="repairment_status"]').length).toBe(2);
+  });
+
   it('switches conditional fields and emits valid multipart-ready state', async () => {
     const wrapper = mount(ItemForm, { props: { initialItem: emptyItemForm(), busy: false } });
     expect(wrapper.find('[name="warehouse"]').exists()).toBe(true);
@@ -60,5 +79,31 @@ describe('ItemForm', () => {
     expect(wrapper.emitted('submit')[0][0].form).toMatchObject({
       name: 'Controller', part_num: 'PCB-1', stored: false, delivered_to: 'Assembly'
     });
+  });
+
+  it('allows update notes on under-repair items in edit mode', async () => {
+    const wrapper = mount(ItemForm, {
+      props: { initialItem: { ...emptyItemForm(), name: 'Controller', under_repairment: true, stored: true, location: { warehouse: 'lab', section: '', pack: '' } }, busy: false }
+    });
+
+    await wrapper.get('[name="new_update"]').setValue('Checked after repair');
+    await wrapper.get('form').trigger('submit');
+
+    expect(wrapper.emitted('submit')).toHaveLength(1);
+  });
+
+  it.each([
+    ['stored', { stored: true, location: { warehouse: 'W1', section: 'S1', pack: 'P1' } }],
+    ['delivered', { stored: false, delivered_to: 'Assembly' }],
+    ['under repair', { stored: true, under_repairment: true, location: { warehouse: 'lab', section: '', pack: '' } }]
+  ])('allows update notes for %s items', async (_state, itemState) => {
+    const wrapper = mount(ItemForm, {
+      props: { initialItem: { ...emptyItemForm(), name: 'Controller', ...itemState }, busy: false }
+    });
+
+    await wrapper.get('[name="new_update"]').setValue('Added a note');
+    await wrapper.get('form').trigger('submit');
+
+    expect(wrapper.emitted('submit')).toHaveLength(1);
   });
 });

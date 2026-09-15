@@ -4,8 +4,9 @@ function normalizeInventoryState(candidate) {
   const stored = candidate.stored;
   if (typeof stored !== 'boolean') throw new ApiError(400, 'stored must be a boolean');
   if (stored) {
-    const location = Object.fromEntries(['warehouse', 'section', 'pack'].map((key) => [key, candidate.location?.[key]?.trim()]));
-    if (Object.values(location).some((value) => !value)) throw new ApiError(400, 'A complete location is required for stored items');
+    if (candidate.under_repairment) return { stored: true, location: { warehouse: 'lab', section: null, pack: null }, delivered_to: '' };
+    const location = Object.fromEntries(['warehouse', 'section', 'pack'].map((key) => [key, candidate.location?.[key]?.trim() || undefined]));
+    if (!location.warehouse) throw new ApiError(400, 'warehouse is required for stored items');
     return { stored: true, location, delivered_to: '' };
   }
   const deliveredTo = candidate.delivered_to?.trim();

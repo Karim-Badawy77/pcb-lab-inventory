@@ -42,6 +42,15 @@ test('lists, updates delivery state, and soft deletes', async () => {
   expect((await request(app).get('/api/items?includeDeleted=true')).body.data.total).toBe(1);
 });
 
+test('item update notes are persisted', async () => {
+  const created = await createStoredItem();
+  const updated = await request(app).patch(`/api/items/${created.body.data._id}`)
+    .field('updates', JSON.stringify([{ text: 'Checked under microscope' }]));
+
+  expect(updated.status).toBe(200);
+  expect(updated.body.data.updates).toEqual(expect.arrayContaining([expect.objectContaining({ text: 'Checked under microscope' })]));
+});
+
 test('returns validation errors in stable envelope', async () => {
   const response = await request(app).post('/api/items').send({ name: 'Bad', stored: false });
   expect(response.status).toBe(400);
@@ -79,7 +88,10 @@ test('service records a location transaction', async () => {
   const item = await createItem(storedPayload, []);
   await updateItem(item._id, { location: { warehouse: 'W1', section: 'S1', pack: 'P2' } }, []);
   const rows = await History.find({ item_id: item._id }).sort({ date: 1 }).lean();
-  expect(rows[1]).toMatchObject({ from: storedPayload.location, to: { warehouse: 'W1', section: 'S1', pack: 'P2' } });
+  expect(rows[1].repairment_id).toBeNull();
+  expect(rows[1].fields).toEqual(expect.arrayContaining([
+    { field_name: 'location', from: storedPayload.location, to: { warehouse: 'W1', section: 'S1', pack: 'P2' } },
+  ]));
 });
 
 test('service hides soft-deleted items and rejects repeated deletion', async () => {
@@ -87,6 +99,6 @@ test('service hides soft-deleted items and rejects repeated deletion', async () 
   await softDeleteItem(item._id);
   await expect(getItem(item._id)).rejects.toMatchObject({ statusCode: 404 });
   expect((await listItems({ includeDeleted: true })).total).toBe(1);
-  expect(await History.exists({ item_id: item._id, to: 'deleted' })).toBeTruthy();
+  expect(await History.exists({ item_id: item._id, 'fields.field_name': 'deleted', 'fields.to': true })).toBeTruthy();
   await expect(softDeleteItem(item._id)).rejects.toMatchObject({ statusCode: 409 });
 });

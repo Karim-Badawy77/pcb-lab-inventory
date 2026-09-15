@@ -7,11 +7,19 @@ const historySchema = new mongoose.Schema(
             ref: "Item",
             required: true,
         },
+        repairment_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Repairment",
+            default: null,
+        },
+        fields: [
+            {
+                field_name: { type: String, required: true },
+                from: { type: mongoose.Schema.Types.Mixed, default: null },
+                to: { type: mongoose.Schema.Types.Mixed },
+            },
+        ],
         date: { type: Date, default: Date.now },
-        from: { type: mongoose.Schema.Types.Mixed, default: null },
-        to: { type: mongoose.Schema.Types.Mixed, required: true },
-        delivered_to: { type: String, trim: true },
-        new_item: { type: Boolean, default: false },
     },
     { collection: "history" },
 );

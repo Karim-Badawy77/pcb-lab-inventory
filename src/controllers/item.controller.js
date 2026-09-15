@@ -1,7 +1,7 @@
 const itemService = require("../services/item.service");
 const { removeFiles } = require("../services/file.service");
 
-const JSON_FIELDS = ["location", "tags", "updates", "removeImageIds"];
+const JSON_FIELDS = ["location", "tags", "updates", "removeImageIds", "serial_num", "repairments"];
 
 function parsePayload(body) {
     const payload = { ...body };
@@ -16,6 +16,13 @@ function parsePayload(body) {
             });
         payload.stored = payload.stored === "true";
     }
+    for (const field of ['functional', 'under_repairment']) {
+        if (typeof payload[field] === 'string') {
+            if (!['true', 'false'].includes(payload[field])) throw Object.assign(new Error(`${field} must be true or false`), { statusCode: 400 });
+            payload[field] = payload[field] === 'true';
+        }
+    }
+    for (const field of ['quantity']) if (typeof payload[field] === 'string') payload[field] = Number(payload[field]);
     return payload;
 }
 
