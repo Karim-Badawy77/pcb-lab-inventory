@@ -63,6 +63,18 @@ describe('ItemDetailPage', () => {
     expect(wrapper.text()).toContain('Motor Controller');
   });
 
+  it('excludes repairment-linked entries from item logs', async () => {
+    const itemWithRepairmentLog = { ...detail, history: [...detail.history, { _id: 'repair-log', repairment_id: 'repair-1', date: '2026-08-30T12:00:00Z', fields: [{ field_name: 'status', from: 'repairing', to: 'repaired' }] }] };
+    apiRequest.mockResolvedValueOnce(itemWithRepairmentLog).mockResolvedValueOnce([]);
+    const router = testRouter();
+    await router.push('/items/item-1');
+    await router.isReady();
+    const wrapper = mount(ItemDetailPage, { global: { plugins: [router] } });
+    await flushPromises();
+
+    expect(wrapper.get('.detail-section:last-of-type').text()).not.toContain('repair-1');
+  });
+
   it('soft deletes only after the exact name and returns to inventory', async () => {
     apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce([]).mockResolvedValueOnce({ ...detail, deleted: true });
     const router = testRouter();

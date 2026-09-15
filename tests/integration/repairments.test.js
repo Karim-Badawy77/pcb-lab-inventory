@@ -35,6 +35,26 @@ test('repairment updates increment item count and record linked field history', 
   expect(await History.exists({ item_id: item._id, repairment_id: created.body.data._id, 'fields.field_name': 'status' })).toBeTruthy();
 });
 
+test('allows delivery from any repairment state and keeps the parent under repair until all units are delivered', async () => {
+  const response = await createItem(2);
+  const repairments = await Repairment.find({ item_id: response.body.data._id }).sort({ createdAt: 1 });
+
+  const first = await request(app).patch(`/api/repairments/${repairments[0]._id}`).send({
+    status: 'delivered', delivered_to: 'Assembly', delivered_by: 'Karim',
+  });
+  expect(first.status).toBe(200);
+  expect(first.body.data).toMatchObject({ status: 'delivered', delivered_to: 'Assembly', delivered_by: 'Karim' });
+  expect((await Item.findById(response.body.data._id)).under_repairment).toBe(true);
+
+  const second = await request(app).patch(`/api/repairments/${repairments[1]._id}`).send({
+    status: 'delivered', delivered_to: 'Assembly', delivered_by: 'Karim',
+  });
+  expect(second.status).toBe(200);
+  expect((await Item.findById(response.body.data._id)).toObject()).toMatchObject({
+    stored: false, under_repairment: false, delivered_to: 'Assembly',
+  });
+});
+
 test('repairment update notes are persisted', async () => {
   const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W', section: 'S', pack: 'P' } });
   const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing' });

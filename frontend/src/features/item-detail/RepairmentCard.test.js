@@ -13,4 +13,13 @@ describe('RepairmentCard', () => {
     expect(wrapper.text()).toContain('SN-42');
     expect(wrapper.get('.repairment-card__arrow').attributes('aria-hidden')).toBe('true');
   });
+
+  it('shows the unit status as a badge', () => {
+    const wrapper = mount(RepairmentCard, {
+      props: { repairment: { _id: 'repair-1', serial_num: 'SN-42', status: 'awaiting_spare_part' } },
+      global: { stubs: { RouterLink: { template: '<a><slot /></a>', props: ['to'] } } }
+    });
+
+    expect(wrapper.get('[data-testid="unit-status-badge"]').text()).toBe('Awaiting Spare Part');
+  });
 });

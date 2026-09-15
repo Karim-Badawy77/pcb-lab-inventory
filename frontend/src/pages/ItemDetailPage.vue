@@ -220,7 +220,7 @@ onBeforeRouteLeave(
                 <span class="eyebrow">Logs</span>
                 <h2>Transaction history</h2>
                 <p class="muted log-hint">Listed from newest to oldest.</p>
-                <HistoryTimeline :history="item.history" />
+                <HistoryTimeline :history="(item.history || []).filter((entry) => !entry.repairment_id)" />
             </section>
             <section class="danger-zone">
                 <div>

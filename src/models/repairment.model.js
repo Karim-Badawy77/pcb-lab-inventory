@@ -12,7 +12,10 @@ const updateSchema = new mongoose.Schema({
 const repairmentSchema = new mongoose.Schema({
   item_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true },
   serial_num: { type: String, trim: true },
-  status: { type: String, enum: ['repaired', 'unrepairable', 'repairing', 'awaiting_spare_part'], required: true },
+  status: { type: String, enum: ['repaired', 'unrepairable', 'repairing', 'awaiting_spare_part', 'delivered'], required: true },
+  delivered_to: { type: String, trim: true },
+  delivered_by: { type: String, trim: true },
+  delivered_at: { type: Date },
   field_test_date: { type: [Date], default: [] },
   repairer: { type: [String], default: [] },
   spare_part: { type: [sparePartSchema], default: [] },

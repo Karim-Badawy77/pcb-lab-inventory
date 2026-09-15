@@ -74,9 +74,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .status-badge { position: absolute; top: .75rem; right: .75rem; min-height: 1.8rem; padding: .35rem .6rem; display: inline-flex; align-items: center; gap: .35rem; border-radius: 99px; font-size: .64rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; backdrop-filter: blur(10px); }
 .status-badge span { width: .42rem; height: .42rem; border-radius: 50%; background: currentColor; }
 .detail-status .status-badge { position: static; }
+.detail-title-row .status-badge { position: static; margin-top: .7rem; }
 .status-badge--stored { color: #184a2c; background: rgb(222 242 218 / 92%); }
 .status-badge--delivered { color: #765014; background: rgb(255 235 181 / 94%); }
 .status-badge--repairing { color: #5b3f76; background: rgb(232 218 247 / 94%); }
+.repairment-card .status-badge { position: static; flex: none; }
+.status-badge--awaiting_spare_part { color: #765014; background: rgb(255 235 181 / 94%); }
+.status-badge--repaired { color: #2c6630; background: rgb(214 238 211 / 94%); }
+.status-badge--unrepairable { color: #8a3028; background: rgb(248 220 216 / 94%); }
 .pcb-placeholder { position: absolute; inset: 0; display: grid; place-items: center; color: #e9f3ea; background-color: #526d5b; background-image: radial-gradient(circle at 18% 22%, #d7f04b 0 .23rem, transparent .27rem), radial-gradient(circle at 76% 68%, #d7f04b 0 .23rem, transparent .27rem), linear-gradient(35deg, transparent 47%, rgb(215 240 75 / 38%) 48% 50%, transparent 51%), linear-gradient(145deg, transparent 47%, rgb(215 240 75 / 25%) 48% 50%, transparent 51%); }
 .pcb-placeholder b { padding: .6rem .8rem; border: 1px solid rgb(255 255 255 / 45%); border-radius: .4rem; letter-spacing: .18em; }
 .card-copy { padding: 1rem; }
@@ -155,7 +160,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .record-grid dd { margin: .25rem 0 0; overflow-wrap: anywhere; font-weight: 700; }
 .tag-row { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: .4rem; }
 .tag-row span { padding: .35rem .5rem; color: var(--green-2); background: #e8eadf; border-radius: .4rem; font-size: .7rem; }
-.detail-section { margin: 0 1rem 1rem; }
+.detail-section { margin: 1rem; }
 .detail-section h2 { margin: .25rem 0 1rem; font-family: Georgia, serif; font-size: 1.7rem; font-weight: 500; }
 .repairment-grid { display: grid; gap: .75rem; }
 .repairment-card { position: relative; display: flex; align-items: center; gap: .85rem; min-height: 5.5rem; padding: 1rem 1.1rem; overflow: hidden; color: inherit; background: linear-gradient(135deg, #fffdf8, #f5f3e9); border: 1px solid var(--line); border-radius: 1rem; box-shadow: 0 8px 22px rgb(31 54 39 / 7%); text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }

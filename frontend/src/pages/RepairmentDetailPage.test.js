@@ -21,4 +21,22 @@ describe('RepairmentDetailPage', () => {
 
     expect(wrapper.get('.detail-section:nth-of-type(3)').text()).toContain('Verified output');
   });
+
+  it('renders delivery details, status badge, parent item link, and date-only field tests', async () => {
+    apiRequest
+      .mockResolvedValueOnce({ _id: 'repair-1', item_id: 'item-1', status: 'delivered', delivered_by: 'Karim', delivered_to: 'Assembly', delivered_at: '2026-09-14T10:00:00Z', field_test_date: ['2026-09-14T10:30:00Z'], history: [] })
+      .mockResolvedValueOnce({ history: [] });
+    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/repairments/:id', component: RepairmentDetailPage }, { path: '/items/:id', component: { template: '<p />' } }, { path: '/repairments/:id/edit', component: { template: '<p />' } }] });
+    await router.push('/repairments/repair-1');
+    await router.isReady();
+    const wrapper = mount(RepairmentDetailPage, { global: { plugins: [router] } });
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="parent-item-link"]').attributes('href')).toBe('/items/item-1');
+    expect(wrapper.get('[data-testid="repairment-status-badge"]').text()).toContain('Delivered');
+    expect(wrapper.get('[data-testid="delivery-section"]').text()).toContain('Karim');
+    expect(wrapper.get('[data-testid="delivery-section"]').text()).toContain('Assembly');
+    expect(wrapper.text()).toContain('Sep 14, 2026');
+    expect(wrapper.text()).not.toContain('10:30');
+  });
 });
