@@ -14,8 +14,6 @@ const items = [
   }
 ];
 
-beforeEach(() => { window.APP_CONFIG = { API_BASE_URL: 'http://localhost:3000' }; });
-afterEach(() => { delete window.APP_CONFIG; });
 
 describe('inventory filtering and display helpers', () => {
   it('combines normalized search and filters', () => {

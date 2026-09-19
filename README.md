@@ -2,10 +2,10 @@
 
 PCB Lab Inventory catalogs physical PCB-lab items, tracks storage or delivery state, records repairments, stores images, and maintains transaction history.
 
-The repository contains two independently runnable projects:
+The repository contains the API and Vue frontend in one runnable project:
 
 - `src/` — Express, Mongoose, and MongoDB REST API
-- `frontend/` — Vue 3 and Vue Router interface
+- `frontend/` — Vue 3 and Vue Router source
 
 ## Requirements
 
@@ -19,19 +19,7 @@ npm install
 npm start
 ```
 
-In a second terminal:
-
-```powershell
-cd frontend
-npm install
-npm run dev
-```
-
-Open `http://localhost:5173`. The frontend defaults to `http://localhost:3000` for the API. Configure another origin in `frontend/public/config.js`:
-
-```js
-window.APP_CONFIG = { API_BASE_URL: "http://localhost:3000" };
-```
+For frontend development with Vite’s proxy, run `npm run dev` and open `http://localhost:5173`.
 
 ## Inventory features
 
@@ -107,12 +95,11 @@ API:
 npm test
 ```
 
-Frontend:
+Frontend tests and build:
 
 ```powershell
-cd frontend
-npm test
+npm run test:frontend
 npm run build
 ```
 
-The production frontend is written to `frontend/dist/`. Configure the static server to fall back to `index.html` for client-side routes.
+`npm start` automatically builds the frontend when needed, then serves it and the API from the same origin.
