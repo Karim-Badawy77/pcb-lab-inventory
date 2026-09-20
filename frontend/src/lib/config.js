@@ -1,5 +1,5 @@
 export function apiBaseUrl() {
-  return String(window.APP_CONFIG?.API_BASE_URL || '').trim().replace(/\/+$/, '');
+  return '';
 }
 
 export function apiUrl(path) {
