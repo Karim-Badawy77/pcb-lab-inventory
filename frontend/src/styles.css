@@ -203,6 +203,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .delete-dialog .feedback { margin-inline: 0; }
 .dialog-actions { margin-top: 1.2rem; display: flex; justify-content: flex-end; gap: .6rem; }
 @keyframes shimmer { to { background-position: -200% 0; } }
+.autocomplete-field { position: relative; }
+.autocomplete-options { position: absolute; z-index: 10; top: calc(100% + .2rem); left: 0; right: 0; overflow: auto; max-height: 14rem; padding: .25rem; background: white; border: 1px solid var(--line); border-radius: .6rem; box-shadow: var(--shadow); }
+.autocomplete-options button { width: 100%; padding: .7rem; border: 0; border-radius: .4rem; color: var(--ink); background: transparent; text-align: left; }
+.autocomplete-options button:active, .autocomplete-options button:hover { background: #e8eadf; }
 
 @media (min-width: 48rem) {
   .site-header { padding-inline: 2rem; }

@@ -62,6 +62,7 @@ describe('ItemForm', () => {
 
     expect(wrapper.find('[name="name"]').attributes('list')).toBe('item-name-options');
     expect(wrapper.find('#item-name-options option').attributes('value')).toBe('Controller');
+    expect(wrapper.find('#item-name-options option').text()).toBe('Controller');
     expect(wrapper.find('#item-organization-options option').attributes('value')).toBe('Lab');
   });
 
