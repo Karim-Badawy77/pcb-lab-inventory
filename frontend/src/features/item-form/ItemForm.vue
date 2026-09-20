@@ -1,6 +1,7 @@
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
+import AutocompleteField from "@/components/AutocompleteField.vue";
 import ImagePicker from "./ImagePicker.vue";
 import RepairmentUnitFields from "./RepairmentUnitFields.vue";
 import { itemToForm, validateItemForm } from "./item-form";
@@ -82,7 +83,7 @@ function submit() {
 </script>
 
 <template>
-    <form class="item-form" novalidate @submit.prevent="submit">
+    <form class="item-form" autocomplete="off" novalidate @submit.prevent="submit">
         <FeedbackMessage
             v-if="errorSummary.length"
             :message="`Check ${errorSummary.length} highlighted field${errorSummary.length === 1 ? '' : 's'}.`"
@@ -94,18 +95,18 @@ function submit() {
             <div class="field-grid">
                 <label class="field"
                     ><span>Name *</span
-                    ><input
+                    ><AutocompleteField
                         v-model="form.name"
                         name="name"
-                        autocomplete="off" list="item-name-options"
+                        :suggestions="suggestions.name || []"
                     /><small v-if="errors.name">{{ errors.name }}</small></label
                 >
                 <label class="field"
                     ><span>Part number</span
-                    ><input
+                    ><AutocompleteField
                         v-model="form.part_num"
                         name="part_num"
-                        autocomplete="off" list="item-part-num-options"
+                        :suggestions="suggestions.part_num || []"
                     /><small v-if="errors.part_num">{{
                         errors.part_num
                     }}</small></label
@@ -171,25 +172,21 @@ function submit() {
             <div v-else-if="form.stored" class="field-grid field-grid--three">
                 <label class="field"
                     ><span>Warehouse *</span
-                    ><input
-                        v-model="form.location.warehouse"
-                        name="warehouse" list="item-warehouse-options"
+                    ><AutocompleteField v-model="form.location.warehouse" name="warehouse" :suggestions="suggestions.warehouse || []"
                     /><small v-if="errors['location.warehouse']">{{
                         errors["location.warehouse"]
                     }}</small></label
                 >
                 <label class="field"
                     ><span>Section</span
-                    ><input
-                        v-model="form.location.section"
-                        name="section" list="item-section-options"
+                    ><AutocompleteField v-model="form.location.section" name="section" :suggestions="suggestions.section || []"
                     /><small v-if="errors['location.section']">{{
                         errors["location.section"]
                     }}</small></label
                 >
                 <label class="field"
                     ><span>Pack</span
-                    ><input v-model="form.location.pack" name="pack" list="item-pack-options" /><small
+                    ><AutocompleteField v-model="form.location.pack" name="pack" :suggestions="suggestions.pack || []" /><small
                         v-if="errors['location.pack']"
                         >{{ errors["location.pack"] }}</small
                     ></label
@@ -198,16 +195,14 @@ function submit() {
             <div v-else class="field-grid">
                 <label class="field"
                     ><span>Delivered to *</span
-                    ><input
-                        v-model="form.delivered_to"
-                        name="delivered_to" list="item-delivered-to-options"
+                    ><AutocompleteField v-model="form.delivered_to" name="delivered_to" :suggestions="suggestions.delivered_to || []"
                     /><small v-if="errors.delivered_to">{{
                         errors.delivered_to
                     }}</small></label
                 >
                 <label class="field"
                     ><span>Delivered by</span
-                    ><input v-model="form.delivered_by" name="delivered_by" list="item-delivered-by-options"
+                    ><AutocompleteField v-model="form.delivered_by" name="delivered_by" :suggestions="suggestions.delivered_by || []"
                 /></label>
             </div>
             <div v-if="creationMode" class="field-grid">
@@ -236,10 +231,10 @@ function submit() {
             <div class="field-grid">
                 <label class="field"
                     ><span>Organization</span
-                    ><input v-model="form.organization" name="organization" list="item-organization-options"
+                    ><AutocompleteField v-model="form.organization" name="organization" :suggestions="suggestions.organization || []"
                 /></label>
                 <label class="field"
-                    ><span>Owner</span><input v-model="form.owner" name="owner" list="item-owner-options"
+                    ><span>Owner</span><AutocompleteField v-model="form.owner" name="owner" :suggestions="suggestions.owner || []"
                 /></label>
             </div>
             <label class="field"
@@ -283,7 +278,7 @@ function submit() {
         />
 
         <template v-for="field in ['name', 'part_num', 'warehouse', 'section', 'pack', 'delivered_to', 'delivered_by', 'organization', 'owner']" :key="field">
-            <datalist :id="`item-${field.replaceAll('_', '-')}-options`"><option v-for="value in suggestions[field] || []" :key="value" :value="value" /></datalist>
+            <datalist :id="`item-${field.replaceAll('_', '-')}-options`"><option v-for="value in suggestions[field] || []" :key="value" :value="value" :label="value">{{ value }}</option></datalist>
         </template>
 
         <div class="form-actions">
