@@ -10,6 +10,7 @@ const props = defineProps({
     busy: { type: Boolean, default: false },
     submitLabel: { type: String, default: "Save item" },
     creationMode: { type: Boolean, default: false },
+    suggestions: { type: Object, default: () => ({}) },
 });
 const emit = defineEmits(["submit", "dirty-change", "cancel"]);
 const form = reactive(itemToForm(props.initialItem));
@@ -96,7 +97,7 @@ function submit() {
                     ><input
                         v-model="form.name"
                         name="name"
-                        autocomplete="off"
+                        autocomplete="off" list="item-name-options"
                     /><small v-if="errors.name">{{ errors.name }}</small></label
                 >
                 <label class="field"
@@ -104,7 +105,7 @@ function submit() {
                     ><input
                         v-model="form.part_num"
                         name="part_num"
-                        autocomplete="off"
+                        autocomplete="off" list="item-part-num-options"
                     /><small v-if="errors.part_num">{{
                         errors.part_num
                     }}</small></label
@@ -172,7 +173,7 @@ function submit() {
                     ><span>Warehouse *</span
                     ><input
                         v-model="form.location.warehouse"
-                        name="warehouse"
+                        name="warehouse" list="item-warehouse-options"
                     /><small v-if="errors['location.warehouse']">{{
                         errors["location.warehouse"]
                     }}</small></label
@@ -181,14 +182,14 @@ function submit() {
                     ><span>Section</span
                     ><input
                         v-model="form.location.section"
-                        name="section"
+                        name="section" list="item-section-options"
                     /><small v-if="errors['location.section']">{{
                         errors["location.section"]
                     }}</small></label
                 >
                 <label class="field"
                     ><span>Pack</span
-                    ><input v-model="form.location.pack" name="pack" /><small
+                    ><input v-model="form.location.pack" name="pack" list="item-pack-options" /><small
                         v-if="errors['location.pack']"
                         >{{ errors["location.pack"] }}</small
                     ></label
@@ -199,14 +200,14 @@ function submit() {
                     ><span>Delivered to *</span
                     ><input
                         v-model="form.delivered_to"
-                        name="delivered_to"
+                        name="delivered_to" list="item-delivered-to-options"
                     /><small v-if="errors.delivered_to">{{
                         errors.delivered_to
                     }}</small></label
                 >
                 <label class="field"
                     ><span>Delivered by</span
-                    ><input v-model="form.delivered_by" name="delivered_by"
+                    ><input v-model="form.delivered_by" name="delivered_by" list="item-delivered-by-options"
                 /></label>
             </div>
             <div v-if="creationMode" class="field-grid">
@@ -235,10 +236,10 @@ function submit() {
             <div class="field-grid">
                 <label class="field"
                     ><span>Organization</span
-                    ><input v-model="form.organization" name="organization"
+                    ><input v-model="form.organization" name="organization" list="item-organization-options"
                 /></label>
                 <label class="field"
-                    ><span>Owner</span><input v-model="form.owner" name="owner"
+                    ><span>Owner</span><input v-model="form.owner" name="owner" list="item-owner-options"
                 /></label>
             </div>
             <label class="field"
@@ -280,6 +281,10 @@ function submit() {
             :error="errors.images"
             @change="onImagesChange"
         />
+
+        <template v-for="field in ['name', 'part_num', 'warehouse', 'section', 'pack', 'delivered_to', 'delivered_by', 'organization', 'owner']" :key="field">
+            <datalist :id="`item-${field.replaceAll('_', '-')}-options`"><option v-for="value in suggestions[field] || []" :key="value" :value="value" /></datalist>
+        </template>
 
         <div class="form-actions">
             <button

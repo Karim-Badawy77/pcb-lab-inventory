@@ -9,6 +9,7 @@
 - cd .../pcb-lab-inventory
     make .env file
     shell: npm install
+    shell: npm run build
     shell: npm start
 
 - for everyday use, you can run the following shell command in the project root directory:

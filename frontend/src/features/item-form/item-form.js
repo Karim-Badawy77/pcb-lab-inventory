@@ -12,6 +12,22 @@ export function emptyItemForm() {
   };
 }
 
+export function collectFormSuggestions(items = []) {
+  const fields = ['name', 'part_num', 'organization', 'owner', 'delivered_to', 'delivered_by', 'warehouse', 'section', 'pack', 'serial_num', 'repairer', 'spare_part'];
+  const values = Object.fromEntries(fields.map((field) => [field, new Set()]));
+  for (const item of items) {
+    for (const field of fields.slice(0, 6)) if (item[field]) values[field].add(String(item[field]).trim());
+    for (const field of fields.slice(6, 9)) if (item.location?.[field]) values[field].add(String(item.location[field]).trim());
+    for (const serial of item.serial_num || []) if (serial) values.serial_num.add(String(serial).trim());
+    for (const repairment of item.repairments || []) {
+      if (repairment.serial_num) values.serial_num.add(String(repairment.serial_num).trim());
+      for (const repairer of repairment.repairer || []) if (repairer) values.repairer.add(String(repairer).trim());
+      for (const part of repairment.spare_part || []) if (part.part) values.spare_part.add(`${part.part}:${part.price}`);
+    }
+  }
+  return Object.fromEntries(Object.entries(values).map(([field, entries]) => [field, [...entries].filter(Boolean).sort((a, b) => a.localeCompare(b))]));
+}
+
 export function itemToForm(item = {}) {
   return {
     ...emptyItemForm(),

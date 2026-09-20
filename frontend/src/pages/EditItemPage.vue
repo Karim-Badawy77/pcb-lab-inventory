@@ -3,16 +3,17 @@ import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ItemForm from "@/features/item-form/ItemForm.vue";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
-import { itemToForm, toItemFormData } from "@/features/item-form/item-form";
-import { apiRequest } from "@/lib/api";
+import { collectFormSuggestions, itemToForm, toItemFormData } from "@/features/item-form/item-form";
+import { apiRequest, fetchAllItems } from "@/lib/api";
 const route = useRoute(),
     router = useRouter(),
     item = ref(null),
     error = ref(""),
-    busy = ref(false);
+    busy = ref(false), suggestions = ref({});
 onMounted(async () => {
     try {
         item.value = await apiRequest(`/api/items/${route.params.id}`);
+        suggestions.value = collectFormSuggestions(await fetchAllItems());
     } catch (e) {
         error.value = e.message;
     }
@@ -49,6 +50,7 @@ async function save(payload) {
             v-if="item"
             :initial-item="itemToForm(item)"
             :busy="busy"
+            :suggestions="suggestions"
             submit-label="Update item"
             @submit="save"
         />
