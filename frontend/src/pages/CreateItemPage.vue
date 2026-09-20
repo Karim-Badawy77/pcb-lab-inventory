@@ -3,14 +3,15 @@ import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { onBeforeRouteLeave, useRouter } from 'vue-router';
 import FeedbackMessage from '@/components/FeedbackMessage.vue';
 import ItemForm from '@/features/item-form/ItemForm.vue';
-import { emptyItemForm, toItemFormData } from '@/features/item-form/item-form';
-import { apiRequest } from '@/lib/api';
+import { collectFormSuggestions, emptyItemForm, toItemFormData } from '@/features/item-form/item-form';
+import { apiRequest, fetchAllItems } from '@/lib/api';
 
 const router = useRouter();
 const busy = ref(false);
 const error = ref('');
 const dirty = ref(false);
 const submitted = ref(false);
+const suggestions = ref({});
 
 function setDirty(value) { dirty.value = value; }
 
@@ -35,7 +36,7 @@ function beforeUnload(event) {
   event.returnValue = '';
 }
 
-onMounted(() => window.addEventListener('beforeunload', beforeUnload));
+onMounted(async () => { window.addEventListener('beforeunload', beforeUnload); try { suggestions.value = collectFormSuggestions(await fetchAllItems()); } catch {} });
 onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload));
 onBeforeRouteLeave(() => !dirty.value || submitted.value || window.confirm('Discard your unsaved item?'));
 </script>
@@ -49,6 +50,6 @@ onBeforeRouteLeave(() => !dirty.value || submitted.value || window.confirm('Disc
       <p>Document the board, assign its current state, and add clear photos.</p>
     </header>
     <FeedbackMessage :message="error" />
-    <ItemForm :initial-item="emptyItemForm()" :busy="busy" creation-mode submit-label="Create item" @submit="createItem" @dirty-change="setDirty" />
+    <ItemForm :initial-item="emptyItemForm()" :suggestions="suggestions" :busy="busy" creation-mode submit-label="Create item" @submit="createItem" @dirty-change="setDirty" />
   </main>
 </template>

@@ -55,6 +55,16 @@ describe('item form domain', () => {
 });
 
 describe('ItemForm', () => {
+  it('renders existing item values as autocomplete suggestions', () => {
+    const wrapper = mount(ItemForm, {
+      props: { initialItem: emptyItemForm(), suggestions: { name: ['Controller'], organization: ['Lab'] } }
+    });
+
+    expect(wrapper.find('[name="name"]').attributes('list')).toBe('item-name-options');
+    expect(wrapper.find('#item-name-options option').attributes('value')).toBe('Controller');
+    expect(wrapper.find('#item-organization-options option').attributes('value')).toBe('Lab');
+  });
+
   it('renders under-repair unit cards with a status select', async () => {
     const wrapper = mount(ItemForm, { props: { initialItem: emptyItemForm(), busy: false, creationMode: true } });
     await wrapper.get('[value="under_repair"]').setValue();
