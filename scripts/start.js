@@ -6,10 +6,17 @@ const projectRoot = path.resolve(__dirname, '..');
 const frontendEntry = path.join(projectRoot, 'frontend', 'dist', 'index.html');
 
 if (!fs.existsSync(frontendEntry)) {
-  execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'], {
-    cwd: projectRoot,
-    stdio: 'inherit',
-  });
+  if (process.platform === 'win32') {
+    execFileSync(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', 'npm run build'], {
+      cwd: projectRoot,
+      stdio: 'inherit',
+    });
+  } else {
+    execFileSync('npm', ['run', 'build'], {
+      cwd: projectRoot,
+      stdio: 'inherit',
+    });
+  }
 }
 
 process.env.NODE_ENV = 'production';
