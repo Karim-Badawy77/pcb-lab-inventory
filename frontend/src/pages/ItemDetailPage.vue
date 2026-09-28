@@ -146,8 +146,12 @@ onBeforeRouteLeave(
                             <dd>{{ item.owner || "—" }}</dd>
                         </div>
                         <div>
-                            <dt>Quantity</dt>
-                            <dd>{{ item.quantity ?? 1 }}</dd>
+                            <dt>Total received</dt>
+                            <dd>{{ item.total_quantity ?? 1 }}</dd>
+                        </div>
+                        <div>
+                            <dt>Currently available</dt>
+                            <dd>{{ item.available_quantity ?? item.total_quantity ?? 1 }}</dd>
                         </div>
                         <div>
                             <dt>Status</dt>
@@ -201,7 +205,7 @@ onBeforeRouteLeave(
             </section>
             <section class="detail-section">
                 <span class="eyebrow">Repair queue</span>
-                <h2>Unit repairments</h2>
+                <h2>Unit repairments <span class="repairment-count" data-testid="repairment-count" :aria-label="`${repairments.length} repairment${repairments.length === 1 ? '' : 's'}`">{{ repairments.length }}</span></h2>
                 <RouterLink
                     class="button button--ghost"
                     :to="`/items/${item._id}/repairments/new`"

@@ -22,7 +22,8 @@ const EDITABLE = [
     "functional",
     "under_repairment",
     "type",
-    "quantity",
+    "total_quantity",
+    "available_quantity",
     "description",
     "tags",
     "updates",
@@ -44,16 +45,22 @@ function imageRecords(files) {
 
 async function createItem(payload, files = []) {
     const state = normalizeInventoryState(payload);
+    const totalQuantity = payload.total_quantity ?? 1;
+    const availableQuantity = state.stored
+        ? (payload.available_quantity ?? totalQuantity)
+        : 0;
     let created;
     try {
         await mongoose.connection.transaction(async (session) => {
             created = await new Item({
                 ...payload,
+                total_quantity: totalQuantity,
+                available_quantity: availableQuantity,
                 ...state,
                 images: imageRecords(files),
             }).save({ session });
             if (created.under_repairment && Array.isArray(payload.repairments)) {
-                if (payload.repairments.length !== created.quantity) throw new ApiError(400, 'One repairment record is required per quantity');
+                if (payload.repairments.length !== created.total_quantity) throw new ApiError(400, 'One repairment record is required per total quantity');
                 await Repairment.create(payload.repairments.map((repairment, index) => ({
                     ...repairment,
                     item_id: created._id,
@@ -130,6 +137,9 @@ async function updateItem(id, patch, files = []) {
             const before = item.toObject();
             for (const key of EDITABLE)
                 if (Object.hasOwn(patch, key)) item[key] = patch[key];
+            if (Object.hasOwn(patch, 'total_quantity') && !Object.hasOwn(patch, 'available_quantity')) {
+                item.available_quantity = Math.min(item.available_quantity, item.total_quantity);
+            }
             if (
                 ["stored", "location", "delivered_to", "under_repairment"].some((key) =>
                     Object.hasOwn(patch, key),
@@ -153,6 +163,7 @@ async function updateItem(id, patch, files = []) {
                 item.location = state.location;
                 item.delivered_to = state.delivered_to;
             }
+            if (!item.stored) item.available_quantity = 0;
             if (!item.stored) {
                 const undeliveredRepairments = await Repairment.countDocuments({
                     item_id: item._id,

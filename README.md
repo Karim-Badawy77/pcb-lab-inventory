@@ -23,11 +23,13 @@ For frontend development with Vite’s proxy, run `npm run dev` and open `http:/
 
 ## Inventory features
 
-Items support names, optional part numbers, quantity, owner, organization, type, tags, descriptions, update notes, images, soft deletion, and transaction history. Items can be stored, delivered, or under repair.
+Items support names, optional part numbers, total quantity received by the lab, currently available quantity, owner, organization, type, tags, descriptions, update notes, images, soft deletion, and transaction history. Delivering an item sets its available quantity to zero.
 
 For stored items, warehouse is required while section and pack are optional. For delivered items, `delivered_to` is required. Part number and other metadata are optional. Images accept JPEG, PNG, and WebP files, with a maximum of 10 images and 5 MB per image.
 
-Under-repair items remain stored in the lab and can contain one repairment record per quantity unit, including optional serial numbers and repairment information.
+Under-repair items remain stored in the lab and can contain one repairment record per total quantity unit, including optional serial numbers and repairment information. Delivering an individual repairment reduces the parent item's available quantity by one.
+
+For existing databases, run `npm run migrate:quantities` once before deploying the new application. The migration copies each legacy `quantity` value into `total_quantity` and `available_quantity`.
 
 ## Repairment features
 
@@ -39,7 +41,7 @@ Repairments belong to an item and require only a status: `repairing`, `awaiting_
 |---|---|
 | `/items` | Inventory list |
 | `/items/new` | Add an item |
-| `/items/:id` | Item details, quantity, history, images, and repairments |
+| `/items/:id` | Item details, total and available quantities, history, images, and repairments |
 | `/items/:id/edit` | Edit an item |
 | `/items/:itemId/repairments/new` | Add a repairment |
 | `/repairments/:id` | Repairment details |

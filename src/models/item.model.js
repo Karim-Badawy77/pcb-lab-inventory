@@ -33,11 +33,23 @@ const itemSchema = new mongoose.Schema(
         under_repairment: { type: Boolean, default: false },
         type: { type: String, enum: ["pcb", "module", "else"] },
         edit_count: { type: Number, default: 0, min: 0 },
-        quantity: {
+        total_quantity: {
             type: Number,
             default: 1,
             min: 1,
             validate: Number.isInteger,
+        },
+        available_quantity: {
+            type: Number,
+            default: 1,
+            min: 0,
+            validate: [
+                Number.isInteger,
+                {
+                    validator(value) { return value <= this.total_quantity; },
+                    message: "available_quantity cannot exceed total_quantity",
+                },
+            ],
         },
         description: { type: String, trim: true },
         tags: { type: [String], default: [] },
@@ -63,6 +75,9 @@ const itemSchema = new mongoose.Schema(
 );
 
 itemSchema.pre("validate", function validateState() {
+    if (this.isNew && !this.isModified("available_quantity")) {
+        this.available_quantity = this.total_quantity;
+    }
     const underRepair =
         this.under_repairment &&
         this.stored &&

@@ -4,7 +4,7 @@ export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 export function emptyItemForm() {
   return {
-    name: '', part_num: '', stored: true, under_repairment: false, organization: '', type: '', quantity: 1,
+    name: '', part_num: '', stored: true, under_repairment: false, organization: '', type: '', total_quantity: 1, available_quantity: 1,
     serial_num: [], serialNumText: '', repairments: [],
     location: { warehouse: '', section: '', pack: '' },
     delivered_to: '', delivered_by: '', owner: '', description: '',
@@ -37,7 +37,8 @@ export function itemToForm(item = {}) {
     under_repairment: item.under_repairment ?? false,
     organization: item.organization || '',
     type: item.type || '',
-    quantity: item.quantity || 1,
+    total_quantity: item.total_quantity || 1,
+    available_quantity: item.available_quantity ?? item.total_quantity ?? 1,
     serial_num: Array.isArray(item.serial_num) ? [...item.serial_num] : [],
     serialNumText: Array.isArray(item.serial_num) ? item.serial_num.join(', ') : '',
     repairments: Array.isArray(item.repairments) ? item.repairments.map((repairment) => ({ ...repairment })) : [],
@@ -63,9 +64,9 @@ export function parseTags(tagsText) {
 export function validateItemForm(form, files = [], retainedImageCount = 0, validateRepairments = true) {
   const errors = {};
   if (!form.name?.trim()) errors.name = 'Name is required';
+  if (!Number.isInteger(Number(form.total_quantity)) || Number(form.total_quantity) < 1) errors.total_quantity = 'Total quantity must be a positive whole number';
   if (form.under_repairment && validateRepairments) {
-    if (!Number.isInteger(Number(form.quantity)) || Number(form.quantity) < 1) errors.quantity = 'Quantity must be a positive whole number';
-    if ((form.repairments || []).length !== Number(form.quantity)) errors.repairments = 'Add one repairment record per unit';
+    if ((form.repairments || []).length !== Number(form.total_quantity)) errors.repairments = 'Add one repairment record per unit';
     (form.repairments || []).forEach((unit, index) => {
       if (!['repaired', 'unrepairable', 'repairing', 'awaiting_spare_part'].includes(unit.status)) errors[`repairments.${index}.status`] = 'Select a repairment status';
     });
@@ -73,6 +74,9 @@ export function validateItemForm(form, files = [], retainedImageCount = 0, valid
     if (!form.location?.warehouse?.trim()) errors['location.warehouse'] = 'Warehouse is required';
   } else if (!form.delivered_to?.trim()) {
     errors.delivered_to = 'Delivered to is required';
+  }
+  if (!Number.isInteger(Number(form.available_quantity)) || Number(form.available_quantity) < 0 || Number(form.available_quantity) > Number(form.total_quantity)) {
+    errors.available_quantity = 'Available quantity must be a whole number between zero and total quantity';
   }
 
   if (retainedImageCount + files.length > MAX_IMAGE_COUNT) {
@@ -96,7 +100,8 @@ export function toItemFormData(form, files = [], removeImageIds = []) {
   body.append('part_num', form.part_num.trim());
   body.append('stored', String(Boolean(form.stored)));
   body.append('under_repairment', String(Boolean(form.under_repairment)));
-  body.append('quantity', String(Number(form.quantity) || 1));
+  body.append('total_quantity', String(Number(form.total_quantity) || 1));
+  body.append('available_quantity', String(Number(form.available_quantity) || 0));
   const serials = form.under_repairment
     ? (form.repairments || []).map((unit) => String(unit.serial_num || '').trim())
     : String(form.serialNumText ?? '').split(',').map((serial) => serial.trim()).filter(Boolean);

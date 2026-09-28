@@ -8,10 +8,12 @@
     "main": "src/server.js",
     "scripts": {
         "start": "node scripts/start.js",
+        "migrate:quantities": "node scripts/migrate-quantities.js",
         "dev": "concurrently \"node --watch src/server.js\" \"vite --config frontend/vite.config.js --host 0.0.0.0\"",
         "build": "vite build --config frontend/vite.config.js",
         "test:frontend": "vitest run --config frontend/vite.config.js",
-        "test": "jest --runInBand",
+        "test": "jest --runInBand && npm run test:integration",
+        "test:integration": "node --test --test-concurrency=1 tests/integration/items.test.js tests/integration/repairments.test.js",
         "test:watch": "jest --watch"
     },
     "dependencies": {
@@ -37,7 +39,8 @@
     "jest": {
         "testPathIgnorePatterns": [
             "/node_modules/",
-            "/frontend/"
+            "/frontend/",
+            "/tests/integration/"
         ]
     },
     "allowScripts": {

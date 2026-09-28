@@ -13,6 +13,7 @@ const route = useRoute(),
 onMounted(async () => {
     try {
         item.value = await apiRequest(`/api/items/${route.params.id}`);
+        item.value.repairments = await apiRequest(`/api/repairments/item/${route.params.id}`);
         suggestions.value = collectFormSuggestions(await fetchAllItems());
     } catch (e) {
         error.value = e.message;

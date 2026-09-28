@@ -22,7 +22,7 @@ function parsePayload(body) {
             payload[field] = payload[field] === 'true';
         }
     }
-    for (const field of ['quantity']) if (typeof payload[field] === 'string') payload[field] = Number(payload[field]);
+    for (const field of ['total_quantity', 'available_quantity']) if (typeof payload[field] === 'string') payload[field] = Number(payload[field]);
     return payload;
 }
 

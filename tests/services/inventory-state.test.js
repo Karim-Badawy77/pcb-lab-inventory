@@ -11,7 +11,8 @@ test('delivered state clears location', () => {
 });
 
 test('accepts a stored item with only warehouse location', () => {
-  expect(normalizeInventoryState({ stored: true, location: { warehouse: 'W' } })).toMatchObject({ location: { warehouse: 'W', section: null, pack: null } });
+  expect(normalizeInventoryState({ stored: true, location: { warehouse: 'W' } }))
+    .toEqual({ stored: true, location: { warehouse: 'W', section: undefined, pack: undefined }, delivered_to: '' });
 });
 
 test('detects inventory transactions only', () => {

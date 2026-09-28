@@ -19,7 +19,10 @@ async function createRepairment(itemId, payload) {
     }
     if (payload.status === 'delivered' && !payload.delivered_to?.trim()) throw new ApiError(400, 'delivered_to is required for delivered repairments');
     const repairment = await new Repairment({ ...payload, ...(payload.status === 'delivered' ? { delivered_at: payload.delivered_at || new Date() } : {}), item_id: item._id }).save({ session });
-    await Item.updateOne({ _id: item._id }, { $inc: { edit_count: 1 } }, { session });
+    await Item.updateOne({ _id: item._id }, { $inc: { total_quantity: 1, available_quantity: 1, edit_count: 1 } }, { session });
+    if (repairment.status === 'delivered') {
+      await Item.updateOne({ _id: item._id, available_quantity: { $gt: 0 } }, { $inc: { available_quantity: -1 } }, { session });
+    }
     await History.create([{ item_id: item._id, repairment_id: repairment._id, fields: Object.keys(repairment.toObject()).filter((key) => !['_id', '__v', 'item_id', 'createdAt', 'updatedAt'].includes(key)).map((field_name) => ({ field_name, from: null, to: plain(repairment[field_name]) })) }], { session });
     return repairment;
   });
@@ -56,7 +59,8 @@ async function updateRepairment(id, patch) {
     const fields = buildFieldChanges(before, repairment.toObject(), EDITABLE);
     if (!fields.length) return repairment;
     await repairment.save({ session });
-    if (repairment.status === 'delivered') {
+    if (repairment.status === 'delivered' && before.status !== 'delivered') {
+      await Item.updateOne({ _id: repairment.item_id, deleted: false, available_quantity: { $gt: 0 } }, { $inc: { available_quantity: -1 } }, { session });
       const remaining = await Repairment.countDocuments({ item_id: repairment.item_id, deleted: false, status: { $ne: 'delivered' } }).session(session);
       if (remaining === 0) await Item.updateOne({ _id: repairment.item_id, deleted: false }, { $set: { stored: false, under_repairment: false, location: undefined, delivered_to: repairment.delivered_to || '', delivered_by: repairment.delivered_by || '' }, $inc: { edit_count: 1 } }, { session });
     }
@@ -84,7 +88,7 @@ async function syncRepairments(item, session) {
   if (!item.under_repairment) return [];
   const count = await Repairment.countDocuments({ item_id: item._id, deleted: false }).session(session);
   const created = [];
-  for (let i = count; i < item.quantity; i += 1) created.push(await new Repairment({ item_id: item._id, status: 'repairing' }).save({ session }));
+  for (let i = count; i < item.total_quantity; i += 1) created.push(await new Repairment({ item_id: item._id, status: 'repairing' }).save({ session }));
   return created;
 }
 

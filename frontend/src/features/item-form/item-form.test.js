@@ -80,6 +80,19 @@ describe('ItemForm', () => {
     expect(wrapper.findAll('.autocomplete-options button').some((button) => button.text() === 'Lab')).toBe(true);
   });
 
+  it('does not show a repairment count in the item form', () => {
+    const wrapper = mount(ItemForm, {
+      props: {
+        initialItem: {
+          ...emptyItemForm(),
+          repairments: [{ _id: 'repair-1', status: 'repairing' }, { _id: 'repair-2', status: 'repaired' }]
+        }
+      }
+    });
+
+    expect(wrapper.find('[data-testid="repairment-count"]').exists()).toBe(false);
+  });
+
   it('renders under-repair unit cards with a status select', async () => {
     const wrapper = mount(ItemForm, { props: { initialItem: emptyItemForm(), busy: false, creationMode: true } });
     await wrapper.get('[value="under_repair"]').setValue();

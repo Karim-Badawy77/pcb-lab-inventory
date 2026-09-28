@@ -37,13 +37,14 @@ queueMicrotask(() => {
 function setStored(value) {
     form.stored = value;
     if (value) form.delivered_to = "";
+    else form.available_quantity = 0;
 }
 
 function setUnderRepair() {
     form.under_repairment = true;
     form.stored = true;
     form.location = { warehouse: "lab", section: "", pack: "" };
-    while (form.repairments.length < Number(form.quantity || 1))
+    while (form.repairments.length < Number(form.total_quantity || 1))
         form.repairments.push({
             status: "repairing",
             serial_num: "",
@@ -52,10 +53,11 @@ function setUnderRepair() {
             spare_part_text: "",
             update_text: "",
         });
-    form.repairments.splice(Number(form.quantity || 1));
+    form.repairments.splice(Number(form.total_quantity || 1));
 }
 function setQuantity(value) {
-    form.quantity = Math.max(1, Number(value) || 1);
+    form.total_quantity = Math.max(1, Number(value) || 1);
+    form.available_quantity = Math.min(form.available_quantity, form.total_quantity);
     if (form.under_repairment) setUnderRepair();
 }
 
@@ -207,17 +209,21 @@ function submit() {
                     ><AutocompleteField v-model="form.delivered_by" name="delivered_by" placeholder="Karim" :suggestions="suggestions.delivered_by || []"
                 /></label>
             </div>
-            <div v-if="creationMode" class="field-grid">
+            <div class="field-grid">
                 <label class="field"
-                    ><span>Quantity *</span
+                    ><span>Total quantity received *</span
                     ><input
-                        :value="form.quantity"
-                        name="quantity"
+                        :value="form.total_quantity"
+                        name="total_quantity"
                         type="number"
                         min="1"
                         placeholder="2"
                         @input="setQuantity($event.target.value)"
                 /></label>
+                <label class="field"
+                    ><span>Currently available *</span
+                    ><input v-model.number="form.available_quantity" name="available_quantity" type="number" min="0" :max="form.total_quantity" />
+                    <small v-if="errors.available_quantity">{{ errors.available_quantity }}</small></label>
             </div>
             <template v-if="form.under_repairment && creationMode"
                 ><RepairmentUnitFields

@@ -1,13 +1,14 @@
+const { test, before, after, afterEach } = require('node:test');
+const { expect } = require('expect');
 const request = require('supertest');
 const { createApp } = require('../../src/app');
 const History = require('../../src/models/history.model');
 const { createItem, updateItem, getItem, listItems, softDeleteItem } = require('../../src/services/item.service');
 const { connectTestDatabase, clearTestDatabase, disconnectTestDatabase } = require('../helpers/database');
 
-jest.setTimeout(300000);
-beforeAll(connectTestDatabase);
+before(connectTestDatabase);
 afterEach(clearTestDatabase);
-afterAll(disconnectTestDatabase);
+after(disconnectTestDatabase);
 
 const app = createApp();
 const storedPayload = { name: 'Service item', part_num: 'S-1', stored: true,
@@ -77,11 +78,11 @@ test('rejects unsupported image types', async () => {
   expect(response.body.success).toBe(false);
 });
 
-test('service creates initial history and metadata edits create no transaction', async () => {
+test('service creates initial history and records description edits', async () => {
   const item = await createItem(storedPayload, []);
   expect(await History.countDocuments({ item_id: item._id })).toBe(1);
   await updateItem(item._id, { description: 'Edited' }, []);
-  expect(await History.countDocuments({ item_id: item._id })).toBe(1);
+  expect(await History.countDocuments({ item_id: item._id })).toBe(2);
 });
 
 test('service records a location transaction', async () => {
@@ -90,7 +91,7 @@ test('service records a location transaction', async () => {
   const rows = await History.find({ item_id: item._id }).sort({ date: 1 }).lean();
   expect(rows[1].repairment_id).toBeNull();
   expect(rows[1].fields).toEqual(expect.arrayContaining([
-    { field_name: 'location', from: storedPayload.location, to: { warehouse: 'W1', section: 'S1', pack: 'P2' } },
+    expect.objectContaining({ field_name: 'location', from: storedPayload.location, to: { warehouse: 'W1', section: 'S1', pack: 'P2' } }),
   ]));
 });
 

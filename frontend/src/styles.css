@@ -162,6 +162,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .tag-row span { padding: .35rem .5rem; color: var(--green-2); background: #e8eadf; border-radius: .4rem; font-size: .7rem; }
 .detail-section { margin: 1rem; }
 .detail-section h2 { margin: .25rem 0 1rem; font-family: Georgia, serif; font-size: 1.7rem; font-weight: 500; }
+.repairment-count { min-width: 1.75rem; height: 1.75rem; margin-left: .35rem; padding: 0 .45rem; display: inline-grid; place-items: center; vertical-align: .15em; color: var(--green); background: var(--lime); border-radius: 99px; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: .8rem; font-weight: 900; }
 .repairment-grid { display: grid; gap: .75rem; }
 .repairment-card { position: relative; display: flex; align-items: center; gap: .85rem; min-height: 5.5rem; padding: 1rem 1.1rem; overflow: hidden; color: inherit; background: linear-gradient(135deg, #fffdf8, #f5f3e9); border: 1px solid var(--line); border-radius: 1rem; box-shadow: 0 8px 22px rgb(31 54 39 / 7%); text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
 .repairment-card::before { width: .25rem; position: absolute; inset: .9rem auto .9rem 0; border-radius: 0 .4rem .4rem 0; background: var(--green); content: ''; }

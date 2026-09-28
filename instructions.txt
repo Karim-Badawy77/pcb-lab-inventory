@@ -8,11 +8,10 @@
 
 - cd .../pcb-lab-inventory
     make .env file
-    shell: npm install
-    shell: npm run build
-    shell: npm start
+
+- run install-app.bat
 
 - for everyday use, you can run the following shell command in the project root directory:
-    shell: npm start
+    run start-app.bat
 
-- for more instructions on how to use the project, please refer to the README.md file in the project root directory.
+- for more instructions on how to manage this project, please refer to the README.md file in the project root directory.

@@ -33,6 +33,19 @@ function testRouter() {
 describe('ItemDetailPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it('shows the repairment count in the Repair queue section', async () => {
+    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce([{ _id: 'repair-1' }, { _id: 'repair-2' }]);
+    const router = testRouter();
+    await router.push('/items/item-1');
+    await router.isReady();
+    const wrapper = mount(ItemDetailPage, { global: { plugins: [router] } });
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="repairment-count"]').text()).toBe('2');
+    expect(wrapper.get('[data-testid="repairment-count"]').element.closest('section').textContent).toContain('Repair queue');
+    wrapper.unmount();
+  });
+
   it('loads the item and links to the standalone editor', async () => {
     const refreshed = { ...detail, description: 'Updated', history: [...detail.history, { _id: 'h2', date: '2026-08-31T10:00:00Z', from: detail.location, to: { warehouse: 'W1', section: 'S2', pack: 'P4' } }] };
     apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce([]);

@@ -36,7 +36,8 @@ test('stage 2 item fields have defaults and validation', async () => {
   expect(item.functional).toBe(false);
   expect(item.under_repairment).toBe(false);
   expect(item.edit_count).toBe(0);
-  expect(item.quantity).toBe(1);
+  expect(item.total_quantity).toBe(1);
+  expect(item.available_quantity).toBe(1);
   await expect(new Item({ name: 'x', stored: false, delivered_to: 'Lab', type: 'bad' }).validate()).rejects.toThrow();
 });
 

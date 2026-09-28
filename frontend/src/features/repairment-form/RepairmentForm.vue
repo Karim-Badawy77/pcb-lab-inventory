@@ -1,9 +1,155 @@
 <script setup>
-import { reactive } from 'vue'; import AutocompleteField from '@/components/AutocompleteField.vue';
-const props = defineProps({ initialRepairment: { type: Object, default: () => ({}) }, busy: Boolean, submitLabel: { type: String, default: 'Save repairment' }, suggestions: { type: Object, default: () => ({}) } });
-const emit = defineEmits(['submit', 'cancel']);
-const form = reactive({ status: props.initialRepairment.status || 'repairing', serial_num: props.initialRepairment.serial_num || '', delivered_to: props.initialRepairment.delivered_to || '', delivered_by: props.initialRepairment.delivered_by || '', field_test_date: (props.initialRepairment.field_test_date || []).join(', '), repairer: (props.initialRepairment.repairer || []).join(', '), spare_part: (props.initialRepairment.spare_part || []).map((p) => `${p.part}:${p.price}`).join(', '), update: '' });
-function addToday() { form.field_test_date = [...form.field_test_date.split(',').map((v) => v.trim()).filter(Boolean), new Date().toISOString()].join(', '); }
-function submit() { if (!form.status) return; emit('submit', { status: form.status, serial_num: form.serial_num.trim(), delivered_to: form.delivered_to.trim() || undefined, delivered_by: form.delivered_by.trim() || undefined, field_test_date: form.field_test_date.split(',').map((v) => v.trim()).filter(Boolean), repairer: form.repairer.split(',').map((v) => v.trim()).filter(Boolean), spare_part: form.spare_part.split(',').map((v) => { const [part, price] = v.split(':'); return { part: part.trim(), price: Number(price) || 0 }; }).filter((v) => v.part), updates: form.update.trim() ? [{ text: form.update.trim() }] : undefined }); }
+import { reactive } from "vue";
+import AutocompleteField from "@/components/AutocompleteField.vue";
+const props = defineProps({
+    initialRepairment: { type: Object, default: () => ({}) },
+    busy: Boolean,
+    submitLabel: { type: String, default: "Save repairment" },
+    suggestions: { type: Object, default: () => ({}) },
+});
+const emit = defineEmits(["submit", "cancel"]);
+const form = reactive({
+    status: props.initialRepairment.status || "repairing",
+    serial_num: props.initialRepairment.serial_num || "",
+    delivered_to: props.initialRepairment.delivered_to || "",
+    delivered_by: props.initialRepairment.delivered_by || "",
+    field_test_date: (props.initialRepairment.field_test_date || []).join(", "),
+    repairer: (props.initialRepairment.repairer || []).join(", "),
+    spare_part: (props.initialRepairment.spare_part || [])
+        .map((p) => `${p.part}:${p.price}`)
+        .join(", "),
+    update: "",
+});
+function addToday() {
+    form.field_test_date = [
+        ...form.field_test_date
+            .split(",")
+            .map((v) => v.trim())
+            .filter(Boolean),
+        new Date().toISOString(),
+    ].join(", ");
+}
+function submit() {
+    if (!form.status) return;
+    emit("submit", {
+        status: form.status,
+        serial_num: form.serial_num.trim(),
+        delivered_to: form.delivered_to.trim() || undefined,
+        delivered_by: form.delivered_by.trim() || undefined,
+        field_test_date: form.field_test_date
+            .split(",")
+            .map((v) => v.trim())
+            .filter(Boolean),
+        repairer: form.repairer
+            .split(",")
+            .map((v) => v.trim())
+            .filter(Boolean),
+        spare_part: form.spare_part
+            .split(",")
+            .map((v) => {
+                const [part, price] = v.split(":");
+                return { part: part.trim(), price: Number(price) || 0 };
+            })
+            .filter((v) => v.part),
+        updates: form.update.trim()
+            ? [{ text: form.update.trim() }]
+            : undefined,
+    });
+}
 </script>
-<template><form class="item-form" @submit.prevent="submit"><section class="form-section"><span class="eyebrow">Repairment record</span><h2>Track this unit’s repair</h2><div class="field-grid"><label class="field"><span>Serial number</span><AutocompleteField v-model="form.serial_num" name="serial_num" placeholder="SN-2026-001" :suggestions="suggestions.serial_num || []" /></label><label class="field"><span>Status *</span><select v-model="form.status" name="status" required><option value="repairing">Repairing</option><option value="awaiting_spare_part">Awaiting spare part</option><option value="repaired">Repaired</option><option value="unrepairable">Unrepairable</option><option value="delivered">Delivered</option></select></label></div><div v-if="form.status === 'delivered'" class="field-grid"><label class="field"><span>Delivered to *</span><AutocompleteField v-model="form.delivered_to" name="delivered_to" placeholder="Assembly team" :suggestions="suggestions.delivered_to || []" /></label><label class="field"><span>Delivered by</span><AutocompleteField v-model="form.delivered_by" name="delivered_by" placeholder="Karim" :suggestions="suggestions.delivered_by || []" /></label></div><label class="field"><span>Field test dates</span><div class="input-with-action"><input v-model="form.field_test_date" name="field_test_date" placeholder="2026-09-07, 2026-09-08"><button type="button" class="button button--ghost" @click="addToday">Add today</button></div></label><label class="field"><span>Repairers</span><AutocompleteField v-model="form.repairer" name="repairer" placeholder="Amina, Karim" :suggestions="suggestions.repairer || []" /></label><label class="field"><span>Spare parts</span><AutocompleteField v-model="form.spare_part" name="spare_part" placeholder="R1:2.50, C4:1.20" :suggestions="suggestions.spare_part || []" /></label><label class="field"><span>Add update note</span><textarea v-model="form.update" name="update" rows="3" placeholder="Replaced the damaged regulator"></textarea></label></section><div class="form-actions"><button v-if="$attrs.onCancel" type="button" class="button button--ghost" @click="$emit('cancel')">Cancel</button><button class="button button--primary" :disabled="busy">{{ busy ? 'Saving…' : submitLabel }}</button></div></form></template>
+<template>
+    <form class="item-form" @submit.prevent="submit">
+        <section class="form-section">
+            <span class="eyebrow">Repairment record</span>
+            <h2>Track this unit’s repair</h2>
+            <div class="field-grid">
+                <label class="field"
+                    ><span>Serial number</span
+                    ><AutocompleteField
+                        v-model="form.serial_num"
+                        name="serial_num"
+                        placeholder="SN-2026-001"
+                        :suggestions="suggestions.serial_num || []" /></label
+                ><label class="field"
+                    ><span>Status *</span
+                    ><select v-model="form.status" name="status" required>
+                        <option value="repairing">Repairing</option>
+                        <option value="awaiting_spare_part">
+                            Awaiting spare part
+                        </option>
+                        <option value="repaired">Repaired</option>
+                        <option value="unrepairable">Unrepairable</option>
+                        <option value="delivered">Delivered</option>
+                    </select></label
+                >
+            </div>
+            <div v-if="form.status === 'delivered'" class="field-grid">
+                <label class="field"
+                    ><span>Delivered to *</span
+                    ><AutocompleteField
+                        v-model="form.delivered_to"
+                        name="delivered_to"
+                        placeholder="Assembly team"
+                        :suggestions="suggestions.delivered_to || []" /></label
+                ><label class="field"
+                    ><span>Delivered by</span
+                    ><AutocompleteField
+                        v-model="form.delivered_by"
+                        name="delivered_by"
+                        placeholder="Karim"
+                        :suggestions="suggestions.delivered_by || []"
+                /></label>
+            </div>
+            <label class="field"
+                ><span>Field test dates</span>
+                <div class="input-with-action">
+                    <input
+                        v-model="form.field_test_date"
+                        name="field_test_date"
+                        placeholder="2026-09-07, 2026-09-08"
+                    /><button
+                        type="button"
+                        class="button button--ghost"
+                        @click="addToday"
+                    >
+                        Add today
+                    </button>
+                </div></label
+            ><label class="field"
+                ><span>Repairers</span
+                ><AutocompleteField
+                    v-model="form.repairer"
+                    name="repairer"
+                    placeholder="Ahmed, Ali"
+                    :suggestions="suggestions.repairer || []" /></label
+            ><label class="field"
+                ><span>Spare parts</span
+                ><AutocompleteField
+                    v-model="form.spare_part"
+                    name="spare_part"
+                    placeholder="R1:2.50, C4:1.20"
+                    :suggestions="suggestions.spare_part || []" /></label
+            ><label class="field"
+                ><span>Add update note</span
+                ><textarea
+                    v-model="form.update"
+                    name="update"
+                    rows="3"
+                    placeholder="Replaced the damaged regulator"
+                ></textarea>
+            </label>
+        </section>
+        <div class="form-actions">
+            <button
+                v-if="$attrs.onCancel"
+                type="button"
+                class="button button--ghost"
+                @click="$emit('cancel')"
+            >
+                Cancel</button
+            ><button class="button button--primary" :disabled="busy">
+                {{ busy ? "Saving…" : submitLabel }}
+            </button>
+        </div>
+    </form>
+</template>
