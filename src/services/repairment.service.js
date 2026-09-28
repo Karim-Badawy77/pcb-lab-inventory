@@ -5,7 +5,7 @@ const History = require('../models/history.model');
 const ApiError = require('../utils/api-error');
 const { buildFieldChanges, plain } = require('./history.service');
 
-const EDITABLE = ['status', 'field_test_date', 'repairer', 'spare_part', 'updates', 'delivered_to', 'delivered_by', 'delivered_at'];
+const EDITABLE = ['serial_num', 'status', 'field_test_date', 'repairer', 'spare_part', 'updates', 'delivered_to', 'delivered_by', 'delivered_at'];
 function assertId(id) { if (!mongoose.isObjectIdOrHexString(id)) throw new ApiError(400, 'Invalid repairment id'); }
 function assertItemId(id) { if (!mongoose.isObjectIdOrHexString(id)) throw new ApiError(400, 'Invalid item id'); }
 
@@ -14,6 +14,9 @@ async function createRepairment(itemId, payload) {
   return mongoose.connection.transaction(async (session) => {
     const item = await Item.findOne({ _id: itemId, deleted: false }).session(session);
     if (!item) throw new ApiError(404, 'Item not found');
+    if (!item.stored && payload.status !== 'delivered') {
+      throw new ApiError(400, 'Repairments for a delivered item must also be delivered');
+    }
     if (payload.status === 'delivered' && !payload.delivered_to?.trim()) throw new ApiError(400, 'delivered_to is required for delivered repairments');
     const repairment = await new Repairment({ ...payload, ...(payload.status === 'delivered' ? { delivered_at: payload.delivered_at || new Date() } : {}), item_id: item._id }).save({ session });
     await Item.updateOne({ _id: item._id }, { $inc: { edit_count: 1 } }, { session });
@@ -33,6 +36,12 @@ async function updateRepairment(id, patch) {
   return mongoose.connection.transaction(async (session) => {
     const repairment = await Repairment.findOne({ _id: id, deleted: false }).session(session);
     if (!repairment) throw new ApiError(404, 'Repairment not found');
+    if (Object.hasOwn(patch, 'status') && patch.status !== 'delivered') {
+      const item = await Item.findOne({ _id: repairment.item_id, deleted: false }).session(session);
+      if (item && !item.stored) {
+        throw new ApiError(400, 'Repairments for a delivered item must remain delivered');
+      }
+    }
     const before = repairment.toObject();
     if (patch.status === 'delivered') {
       if (!patch.delivered_to?.trim() && !repairment.delivered_to) throw new ApiError(400, 'delivered_to is required for delivered repairments');

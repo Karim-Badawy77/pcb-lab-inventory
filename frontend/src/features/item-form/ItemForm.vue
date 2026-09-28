@@ -98,6 +98,7 @@ function submit() {
                     ><AutocompleteField
                         v-model="form.name"
                         name="name"
+                        placeholder="Controller board"
                         :suggestions="suggestions.name || []"
                     /><small v-if="errors.name">{{ errors.name }}</small></label
                 >
@@ -106,6 +107,7 @@ function submit() {
                     ><AutocompleteField
                         v-model="form.part_num"
                         name="part_num"
+                        placeholder="PCB-001"
                         :suggestions="suggestions.part_num || []"
                     /><small v-if="errors.part_num">{{
                         errors.part_num
@@ -172,21 +174,21 @@ function submit() {
             <div v-else-if="form.stored" class="field-grid field-grid--three">
                 <label class="field"
                     ><span>Warehouse *</span
-                    ><AutocompleteField v-model="form.location.warehouse" name="warehouse" :suggestions="suggestions.warehouse || []"
+                    ><AutocompleteField v-model="form.location.warehouse" name="warehouse" placeholder="Main warehouse" :suggestions="suggestions.warehouse || []"
                     /><small v-if="errors['location.warehouse']">{{
                         errors["location.warehouse"]
                     }}</small></label
                 >
                 <label class="field"
                     ><span>Section</span
-                    ><AutocompleteField v-model="form.location.section" name="section" :suggestions="suggestions.section || []"
+                    ><AutocompleteField v-model="form.location.section" name="section" placeholder="Shelf A" :suggestions="suggestions.section || []"
                     /><small v-if="errors['location.section']">{{
                         errors["location.section"]
                     }}</small></label
                 >
                 <label class="field"
                     ><span>Pack</span
-                    ><AutocompleteField v-model="form.location.pack" name="pack" :suggestions="suggestions.pack || []" /><small
+                    ><AutocompleteField v-model="form.location.pack" name="pack" placeholder="Box 12" :suggestions="suggestions.pack || []" /><small
                         v-if="errors['location.pack']"
                         >{{ errors["location.pack"] }}</small
                     ></label
@@ -195,14 +197,14 @@ function submit() {
             <div v-else class="field-grid">
                 <label class="field"
                     ><span>Delivered to *</span
-                    ><AutocompleteField v-model="form.delivered_to" name="delivered_to" :suggestions="suggestions.delivered_to || []"
+                    ><AutocompleteField v-model="form.delivered_to" name="delivered_to" placeholder="Assembly team" :suggestions="suggestions.delivered_to || []"
                     /><small v-if="errors.delivered_to">{{
                         errors.delivered_to
                     }}</small></label
                 >
                 <label class="field"
                     ><span>Delivered by</span
-                    ><AutocompleteField v-model="form.delivered_by" name="delivered_by" :suggestions="suggestions.delivered_by || []"
+                    ><AutocompleteField v-model="form.delivered_by" name="delivered_by" placeholder="Karim" :suggestions="suggestions.delivered_by || []"
                 /></label>
             </div>
             <div v-if="creationMode" class="field-grid">
@@ -213,6 +215,7 @@ function submit() {
                         name="quantity"
                         type="number"
                         min="1"
+                        placeholder="2"
                         @input="setQuantity($event.target.value)"
                 /></label>
             </div>
@@ -231,10 +234,10 @@ function submit() {
             <div class="field-grid">
                 <label class="field"
                     ><span>Organization</span
-                    ><AutocompleteField v-model="form.organization" name="organization" :suggestions="suggestions.organization || []"
+                    ><AutocompleteField v-model="form.organization" name="organization" placeholder="Electronics lab" :suggestions="suggestions.organization || []"
                 /></label>
                 <label class="field"
-                    ><span>Owner</span><AutocompleteField v-model="form.owner" name="owner" :suggestions="suggestions.owner || []"
+                ><span>Owner</span><AutocompleteField v-model="form.owner" name="owner" placeholder="Maintenance team" :suggestions="suggestions.owner || []"
                 /></label>
             </div>
             <label class="field"
@@ -250,6 +253,7 @@ function submit() {
                     v-model="form.description"
                     name="description"
                     rows="4"
+                    placeholder="Control board for the test station"
                 ></textarea>
             </label>
             <label class="field"
@@ -258,6 +262,7 @@ function submit() {
                     v-model="form.newUpdateText"
                     name="new_update"
                     rows="2"
+                    placeholder="Inspected and ready for testing"
                 ></textarea>
             </label>
             <label class="field"

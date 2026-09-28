@@ -153,6 +153,16 @@ async function updateItem(id, patch, files = []) {
                 item.location = state.location;
                 item.delivered_to = state.delivered_to;
             }
+            if (!item.stored) {
+                const undeliveredRepairments = await Repairment.countDocuments({
+                    item_id: item._id,
+                    deleted: false,
+                    status: { $ne: "delivered" },
+                }).session(session);
+                if (undeliveredRepairments > 0) {
+                    throw new ApiError(400, "All repairments must be delivered before the item can be delivered");
+                }
+            }
             const removeIds = new Set((patch.removeImageIds || []).map(String));
             removedPaths = item.images
                 .filter((image) => removeIds.has(String(image._id)))

@@ -55,15 +55,29 @@ describe('item form domain', () => {
 });
 
 describe('ItemForm', () => {
-  it('renders existing item values as autocomplete suggestions', () => {
+  it('shows examples for item and repairment unit text fields', async () => {
+    const wrapper = mount(ItemForm, { props: { initialItem: emptyItemForm(), creationMode: true } });
+    const expectExamples = () => {
+      for (const field of wrapper.findAll('input:not([type="radio"]):not([type="file"]), textarea')) {
+        expect(field.attributes('placeholder')).toBeTruthy();
+      }
+    };
+    expectExamples();
+    await wrapper.get('[value="delivered"]').setValue();
+    expectExamples();
+    await wrapper.get('[value="under_repair"]').setValue();
+    expectExamples();
+  });
+
+  it('offers existing item values as autocomplete suggestions', async () => {
     const wrapper = mount(ItemForm, {
       props: { initialItem: emptyItemForm(), suggestions: { name: ['Controller'], organization: ['Lab'] } }
     });
 
-    expect(wrapper.find('[name="name"]').attributes('list')).toBe('item-name-options');
-    expect(wrapper.find('#item-name-options option').attributes('value')).toBe('Controller');
-    expect(wrapper.find('#item-name-options option').text()).toBe('Controller');
-    expect(wrapper.find('#item-organization-options option').attributes('value')).toBe('Lab');
+    await wrapper.get('[name="name"]').trigger('focus');
+    expect(wrapper.find('.autocomplete-options button').text()).toBe('Controller');
+    await wrapper.get('[name="organization"]').trigger('focus');
+    expect(wrapper.findAll('.autocomplete-options button').some((button) => button.text() === 'Lab')).toBe(true);
   });
 
   it('renders under-repair unit cards with a status select', async () => {

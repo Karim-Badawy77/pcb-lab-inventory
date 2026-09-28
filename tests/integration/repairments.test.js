@@ -35,6 +35,18 @@ test('repairment updates increment item count and record linked field history', 
   expect(await History.exists({ item_id: item._id, repairment_id: created.body.data._id, 'fields.field_name': 'status' })).toBeTruthy();
 });
 
+test('editing a repairment serial number persists it and records the change', async () => {
+  const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W' } });
+  const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing', serial_num: 'SN-OLD' });
+
+  const updated = await request(app).patch(`/api/repairments/${created.body.data._id}`).send({ serial_num: 'SN-NEW' });
+
+  expect(updated.status).toBe(200);
+  expect(updated.body.data.serial_num).toBe('SN-NEW');
+  expect((await request(app).get(`/api/repairments/${created.body.data._id}`)).body.data.serial_num).toBe('SN-NEW');
+  expect(await History.exists({ item_id: item._id, repairment_id: created.body.data._id, 'fields.field_name': 'serial_num', 'fields.to': 'SN-NEW' })).toBeTruthy();
+});
+
 test('allows delivery from any repairment state and keeps the parent under repair until all units are delivered', async () => {
   const response = await createItem(2);
   const repairments = await Repairment.find({ item_id: response.body.data._id }).sort({ createdAt: 1 });
