@@ -19,16 +19,16 @@ function testRouter() {
 
 const items = [
   {
-    _id: '1', name: 'Motor Controller', part_num: 'PCB-042', stored: true, category: 'Control', tags: ['motor'],
+    _id: '1', name: 'Motor Controller', part_num: 'PCB-042', stored: true, organization: 'Control', tags: ['motor'],
     location: { warehouse: 'W1', section: 'S2', pack: 'P3' }, images: []
   },
   {
-    _id: '2', name: 'Sensor Board', part_num: 'SNS-018', stored: false, category: 'Sensor',
+    _id: '2', name: 'Sensor Board', part_num: 'SNS-018', stored: false, organization: 'Sensor',
     delivered_to: 'Assembly', tags: ['sensor'], images: []
   },
   {
     _id: '3', name: 'Repair Board', part_num: 'REP-007', stored: true, under_repairment: true,
-    category: 'Control', location: { warehouse: 'lab' }, tags: ['repair'], images: []
+    organization: 'Control', location: { warehouse: 'lab' }, tags: ['repair'], images: []
   }
 ];
 

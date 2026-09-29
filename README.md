@@ -27,13 +27,13 @@ Items support names, optional part numbers, total quantity received by the lab, 
 
 For stored items, warehouse is required while section and pack are optional. For delivered items, `delivered_to` is required. Part number and other metadata are optional. Images accept JPEG, PNG, and WebP files, with a maximum of 10 images and 5 MB per image.
 
-Under-repair items remain stored in the lab and can contain one repairment record per total quantity unit, including optional serial numbers and repairment information. Delivering an individual repairment reduces the parent item's available quantity by one.
+Each item unit has a status record. Stored units that are functional and have never been repaired use the `golden` status; these are excluded from repairment counts and shown in a separate golden-unit count. Repairment records use `repairing`, `awaiting_spare_part`, `repaired`, or `unrepairable`. Under-repair items remain stored in the lab. Delivering an individual unit reduces the parent item's available quantity by one.
 
-For existing databases, run `npm run migrate:quantities` once before deploying the new application. The migration copies each legacy `quantity` value into `total_quantity` and `available_quantity`.
+For existing databases, run `npm run migrate:quantities` once before deploying the new application. The migration copies each legacy `quantity` value into `total_quantity` and `available_quantity`, converts legacy functional units to golden records, and removes the item-level `functional` field.
 
 ## Repairment features
 
-Repairments belong to an item and require only a status: `repairing`, `awaiting_spare_part`, `repaired`, or `unrepairable`. Serial number, field-test dates, repairers, spare parts, prices, and update notes are optional. Repairments have dedicated details, edit, and soft-delete flows.
+Unit records belong to an item and require a status: `golden`, `repairing`, `awaiting_spare_part`, `repaired`, `unrepairable`, or `delivered`. Golden means functional with no repairment history. Serial number, field-test dates, repairers, spare parts, prices, and update notes are optional. Non-golden unit records have dedicated details, edit, and soft-delete flows.
 
 ## Frontend routes
 

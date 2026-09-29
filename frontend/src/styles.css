@@ -72,6 +72,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .card-image { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #dce1d7; }
 .card-image > img { width: 100%; height: 100%; object-fit: cover; }
 .status-badge { position: absolute; top: .75rem; right: .75rem; min-height: 1.8rem; padding: .35rem .6rem; display: inline-flex; align-items: center; gap: .35rem; border-radius: 99px; font-size: .64rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; backdrop-filter: blur(10px); }
+.quantity-badge { position: absolute; bottom: .75rem; left: .75rem; min-height: 1.8rem; padding: .35rem .65rem; display: inline-flex; align-items: center; border: 1px solid rgb(255 255 255 / 28%); border-radius: 99px; color: white; background: rgb(16 44 31 / 88%); font-size: .7rem; font-weight: 800; backdrop-filter: blur(10px); }
 .status-badge span { width: .42rem; height: .42rem; border-radius: 50%; background: currentColor; }
 .detail-status .status-badge { position: static; }
 .detail-title-row .status-badge { position: static; margin-top: .7rem; }

@@ -1,6 +1,7 @@
 <script setup>
 defineProps({ unit: { type: Object, required: true }, index: { type: Number, required: true } });
 const statuses = [
+  ['golden', 'Golden (functional, never repaired)'],
   ['repairing', 'Repairing'], ['awaiting_spare_part', 'Awaiting spare part'],
   ['repaired', 'Repaired'], ['unrepairable', 'Unrepairable']
 ];

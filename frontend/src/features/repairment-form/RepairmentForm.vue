@@ -73,6 +73,7 @@ function submit() {
                 ><label class="field"
                     ><span>Status *</span
                     ><select v-model="form.status" name="status" required>
+                        <option value="golden">Golden (functional, never repaired)</option>
                         <option value="repairing">Repairing</option>
                         <option value="awaiting_spare_part">
                             Awaiting spare part
@@ -100,6 +101,7 @@ function submit() {
                         :suggestions="suggestions.delivered_by || []"
                 /></label>
             </div>
+            <template v-if="form.status !== 'golden'">
             <label class="field"
                 ><span>Field test dates</span>
                 <div class="input-with-action">
@@ -138,6 +140,7 @@ function submit() {
                     placeholder="Replaced the damaged regulator"
                 ></textarea>
             </label>
+            </template>
         </section>
         <div class="form-actions">
             <button

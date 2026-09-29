@@ -15,6 +15,12 @@ describe('item form domain', () => {
     expect(JSON.parse(body.get('repairments'))).toMatchObject([{ status: 'repairing' }, { status: 'repaired' }]);
   });
 
+  it('accepts golden unit records for stored inventory', () => {
+    const form = { ...emptyItemForm(), name: 'Stock board', total_quantity: 1, location: { warehouse: 'W', section: '', pack: '' }, repairments: [{ status: 'golden', serial_num: 'SN-1' }] };
+    expect(validateItemForm(form)).toEqual({});
+    expect(JSON.parse(toItemFormData(form).get('repairments'))[0]).toMatchObject({ status: 'golden', serial_num: 'SN-1' });
+  });
+
   it('requires only warehouse for stored items', () => {
     const form = {
       ...emptyItemForm(), name: 'Board', part_num: 'B-1', stored: true,

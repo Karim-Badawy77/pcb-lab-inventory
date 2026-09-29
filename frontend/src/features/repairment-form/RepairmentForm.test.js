@@ -32,6 +32,24 @@ describe('RepairmentForm', () => {
     expect(wrapper.emitted('submit')[0][0].serial_num).toBe('SN-NEW');
   });
 
+  it('offers golden as an add and edit status and submits it', async () => {
+    const wrapper = mount(RepairmentForm, { props: { initialRepairment: { status: 'repairing' } } });
+    expect(wrapper.find('[name="status"] option[value="golden"]').exists()).toBe(true);
+    await wrapper.get('[name="status"]').setValue('golden');
+    await wrapper.get('form').trigger('submit');
+    expect(wrapper.emitted('submit')[0][0].status).toBe('golden');
+  });
+
+  it('shows only serial number and status fields for a golden unit', async () => {
+    const wrapper = mount(RepairmentForm, { props: { initialRepairment: { status: 'repairing' } } });
+    await wrapper.get('[name="status"]').setValue('golden');
+    expect(wrapper.find('[name="serial_num"]').exists()).toBe(true);
+    expect(wrapper.find('[name="status"]').exists()).toBe(true);
+    for (const field of ['delivered_to', 'delivered_by', 'field_test_date', 'repairer', 'spare_part', 'update']) {
+      expect(wrapper.find(`[name="${field}"]`).exists()).toBe(false);
+    }
+  });
+
   it.each(['repairing', 'awaiting_spare_part', 'repaired', 'unrepairable'])('submits an update note when status is %s', async (status) => {
     const wrapper = mount(RepairmentForm, { props: { initialRepairment: { status } } });
     await wrapper.get('[name="update"]').setValue('Progress note');

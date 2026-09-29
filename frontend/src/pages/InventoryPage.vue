@@ -9,11 +9,11 @@ const items = ref([]);
 const loading = ref(true);
 const error = ref('');
 const filtersOpen = ref(false);
-const criteria = reactive({ query: '', status: 'all', category: '', warehouse: '', tag: '' });
+const criteria = reactive({ query: '', status: 'all', organization: '', warehouse: '', tag: '' });
 
 const options = computed(() => uniqueFilterOptions(items.value));
 const visibleItems = computed(() => filterItems(items.value, criteria));
-const filtersActive = computed(() => criteria.category || criteria.warehouse || criteria.tag);
+const filtersActive = computed(() => criteria.organization || criteria.warehouse || criteria.tag);
 
 async function loadItems() {
   loading.value = true;
@@ -24,7 +24,7 @@ async function loadItems() {
 }
 
 function clearFilters() {
-  Object.assign(criteria, { query: '', status: 'all', category: '', warehouse: '', tag: '' });
+  Object.assign(criteria, { query: '', status: 'all', organization: '', warehouse: '', tag: '' });
 }
 
 onMounted(loadItems);
@@ -44,7 +44,7 @@ onMounted(loadItems);
         <button type="button" :class="{ active: filtersActive }" @click="filtersOpen = !filtersOpen">Filters <span aria-hidden="true">{{ filtersOpen ? '−' : '+' }}</span></button>
       </div>
       <div v-if="filtersOpen" class="advanced-filters">
-        <label><span>Category</span><select v-model="criteria.category"><option value="">All categories</option><option v-for="value in options.categories" :key="value">{{ value }}</option></select></label>
+        <label><span>Organization</span><select v-model="criteria.organization"><option value="">All organizations</option><option v-for="value in options.organizations" :key="value">{{ value }}</option></select></label>
         <label><span>Warehouse</span><select v-model="criteria.warehouse"><option value="">All warehouses</option><option v-for="value in options.warehouses" :key="value">{{ value }}</option></select></label>
         <label><span>Tag</span><select v-model="criteria.tag"><option value="">All tags</option><option v-for="value in options.tags" :key="value">{{ value }}</option></select></label>
         <button type="button" class="text-button" @click="clearFilters">Clear all</button>

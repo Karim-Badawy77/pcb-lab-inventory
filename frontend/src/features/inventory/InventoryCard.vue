@@ -10,6 +10,9 @@ defineProps({ item: { type: Object, required: true } });
       <img v-if="primaryImage(item)" :src="primaryImage(item)" :alt="`${item.name} board`">
       <div v-else class="pcb-placeholder" aria-label="No item image"><span></span><i></i><b>PCB</b></div>
       <StatusBadge :stored="item.stored" :under-repairment="item.under_repairment" />
+      <span class="quantity-badge" :aria-label="`${item.available_quantity ?? item.total_quantity ?? 1} available`">
+        {{ item.available_quantity ?? item.total_quantity ?? 1 }} available
+      </span>
     </div>
     <div class="card-copy">
       <span class="part-number">{{ item.part_num }}</span>

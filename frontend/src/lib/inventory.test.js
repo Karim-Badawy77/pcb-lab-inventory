@@ -5,12 +5,12 @@ import { filterItems, formatLocation, primaryImage, uniqueFilterOptions } from '
 const items = [
   {
     _id: '1', name: 'Motor Controller', part_num: 'PCB-042', description: 'Three phase', owner: 'Karim',
-    category: 'Control', tags: ['motor'], stored: true,
+    organization: 'Control', tags: ['motor'], stored: true,
     location: { warehouse: 'W1', section: 'S2', pack: 'P3' }, images: [{ path: '/uploads/a.webp' }]
   },
   {
     _id: '2', name: 'Sensor Board', part_num: 'SNS-018', description: '', owner: 'Mona',
-    category: 'Sensor', tags: ['analog'], stored: false, delivered_to: 'Assembly'
+    organization: 'Sensor', tags: ['analog'], stored: false, delivered_to: 'Assembly'
   }
 ];
 
@@ -18,10 +18,10 @@ const items = [
 describe('inventory filtering and display helpers', () => {
   it('combines normalized search and filters', () => {
     expect(filterItems(items, {
-      query: ' pcb-042 ', status: 'stored', category: 'Control', warehouse: 'W1', tag: 'motor'
+      query: ' pcb-042 ', status: 'stored', organization: 'Control', warehouse: 'W1', tag: 'motor'
     })).toEqual([items[0]]);
     expect(filterItems(items, {
-      query: 'ANALOG', status: 'all', category: '', warehouse: '', tag: ''
+      query: 'ANALOG', status: 'all', organization: '', warehouse: '', tag: ''
     })).toEqual([items[1]]);
   });
 
@@ -31,7 +31,7 @@ describe('inventory filtering and display helpers', () => {
     expect(primaryImage(items[0])).toBe('http://localhost:3000/uploads/a.webp');
     expect(primaryImage(items[1])).toBe('');
     expect(uniqueFilterOptions(items)).toEqual({
-      categories: ['Control', 'Sensor'], warehouses: ['W1'], tags: ['analog', 'motor']
+      organizations: ['Control', 'Sensor'], warehouses: ['W1'], tags: ['analog', 'motor']
     });
   });
 });

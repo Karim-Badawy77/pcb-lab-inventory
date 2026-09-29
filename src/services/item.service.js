@@ -19,7 +19,6 @@ const EDITABLE = [
     "owner",
     "organization",
     "serial_num",
-    "functional",
     "under_repairment",
     "type",
     "total_quantity",
@@ -59,8 +58,8 @@ async function createItem(payload, files = []) {
                 ...state,
                 images: imageRecords(files),
             }).save({ session });
-            if (created.under_repairment && Array.isArray(payload.repairments)) {
-                if (payload.repairments.length !== created.total_quantity) throw new ApiError(400, 'One repairment record is required per total quantity');
+            if (Array.isArray(payload.repairments)) {
+                if (payload.repairments.length !== created.total_quantity) throw new ApiError(400, 'One unit record is required per total quantity');
                 await Repairment.create(payload.repairments.map((repairment, index) => ({
                     ...repairment,
                     item_id: created._id,

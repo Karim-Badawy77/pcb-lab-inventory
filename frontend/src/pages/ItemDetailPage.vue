@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import StatusBadge from "@/components/StatusBadge.vue";
@@ -15,6 +15,12 @@ const route = useRoute();
 const router = useRouter();
 const item = ref(null);
 const repairments = ref([]);
+const repairmentCount = computed(
+    () => repairments.value.filter((row) => row.status !== "golden").length,
+);
+const goldenCount = computed(
+    () => repairments.value.filter((row) => row.status === "golden").length,
+);
 const loading = ref(true);
 const error = ref("");
 const success = ref("");
@@ -122,9 +128,10 @@ onBeforeRouteLeave(
                     >
                 </div>
                 <div class="detail-status">
-                    <StatusBadge :stored="item.stored" :under-repairment="item.under_repairment" /><span
-                        >⌖ {{ formatLocation(item) }}</span
-                    >
+                    <StatusBadge
+                        :stored="item.stored"
+                        :under-repairment="item.under_repairment"
+                    /><span>⌖ {{ formatLocation(item) }}</span>
                 </div>
             </header>
 
@@ -151,11 +158,25 @@ onBeforeRouteLeave(
                         </div>
                         <div>
                             <dt>Currently available</dt>
-                            <dd>{{ item.available_quantity ?? item.total_quantity ?? 1 }}</dd>
+                            <dd>
+                                {{
+                                    item.available_quantity ??
+                                    item.total_quantity ??
+                                    1
+                                }}
+                            </dd>
                         </div>
                         <div>
                             <dt>Status</dt>
-                            <dd>{{ item.under_repairment ? "Repairing" : item.stored ? "Stored" : "Delivered" }}</dd>
+                            <dd>
+                                {{
+                                    item.under_repairment
+                                        ? "Repairing"
+                                        : item.stored
+                                          ? "Stored"
+                                          : "Delivered"
+                                }}
+                            </dd>
                         </div>
                         <div>
                             <dt>
@@ -205,7 +226,21 @@ onBeforeRouteLeave(
             </section>
             <section class="detail-section">
                 <span class="eyebrow">Repair queue</span>
-                <h2>Unit repairments <span class="repairment-count" data-testid="repairment-count" :aria-label="`${repairments.length} repairment${repairments.length === 1 ? '' : 's'}`">{{ repairments.length }}</span></h2>
+                <h2>
+                    Unit repairments
+                    <span
+                        class="repairment-count"
+                        data-testid="repairment-count"
+                        :aria-label="`${repairmentCount} repairment${repairmentCount === 1 ? '' : 's'}`"
+                        >{{ repairmentCount }}</span
+                    >
+                </h2>
+                <p class="muted">
+                    {{ goldenCount }} Golden unit{{
+                        goldenCount === 1 ? "" : "s"
+                    }}
+                    (functional, never repaired).
+                </p>
                 <RouterLink
                     class="button button--ghost"
                     :to="`/items/${item._id}/repairments/new`"
@@ -218,13 +253,21 @@ onBeforeRouteLeave(
                         :repairment="repairment"
                     />
                 </div>
-                <p v-else class="muted">No repairments recorded.</p>
+                <p v-if="!repairmentCount" class="muted">
+                    No repairments recorded.
+                </p>
             </section>
             <section class="detail-section">
                 <span class="eyebrow">Logs</span>
                 <h2>Transaction history</h2>
                 <p class="muted log-hint">Listed from newest to oldest.</p>
-                <HistoryTimeline :history="(item.history || []).filter((entry) => !entry.repairment_id)" />
+                <HistoryTimeline
+                    :history="
+                        (item.history || []).filter(
+                            (entry) => !entry.repairment_id,
+                        )
+                    "
+                />
             </section>
             <section class="danger-zone">
                 <div>

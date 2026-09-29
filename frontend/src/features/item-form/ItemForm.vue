@@ -55,10 +55,17 @@ function setUnderRepair() {
         });
     form.repairments.splice(Number(form.total_quantity || 1));
 }
+function setStoredStatus() {
+    form.under_repairment = false;
+    form.stored = true;
+    while (form.repairments.length < Number(form.total_quantity || 1)) form.repairments.push({ status: "golden", serial_num: "" });
+    form.repairments.splice(Number(form.total_quantity || 1));
+}
 function setQuantity(value) {
     form.total_quantity = Math.max(1, Number(value) || 1);
     form.available_quantity = Math.min(form.available_quantity, form.total_quantity);
     if (form.under_repairment) setUnderRepair();
+    else if (props.creationMode && form.stored) setStoredStatus();
 }
 
 function onImagesChange(payload) {
@@ -138,8 +145,7 @@ function submit() {
                         value="stored"
                         :checked="form.stored && !form.under_repairment"
                         @change="
-                            form.under_repairment = false;
-                            setStored(true);
+                            setStoredStatus();
                         "
                     /><span>Stored</span></label
                 >
@@ -225,7 +231,7 @@ function submit() {
                     ><input v-model.number="form.available_quantity" name="available_quantity" type="number" min="0" :max="form.total_quantity" />
                     <small v-if="errors.available_quantity">{{ errors.available_quantity }}</small></label>
             </div>
-            <template v-if="form.under_repairment && creationMode"
+            <template v-if="creationMode"
                 ><RepairmentUnitFields
                     v-for="(unit, index) in form.repairments"
                     :key="index"

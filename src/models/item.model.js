@@ -29,7 +29,6 @@ const itemSchema = new mongoose.Schema(
         owner: { type: String, trim: true },
         organization: { type: String, trim: true },
         serial_num: { type: [String], default: [] },
-        functional: { type: Boolean, default: false },
         under_repairment: { type: Boolean, default: false },
         type: { type: String, enum: ["pcb", "module", "else"] },
         edit_count: { type: Number, default: 0, min: 0 },

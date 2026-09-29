@@ -68,8 +68,10 @@ export function validateItemForm(form, files = [], retainedImageCount = 0, valid
   if (form.under_repairment && validateRepairments) {
     if ((form.repairments || []).length !== Number(form.total_quantity)) errors.repairments = 'Add one repairment record per unit';
     (form.repairments || []).forEach((unit, index) => {
-      if (!['repaired', 'unrepairable', 'repairing', 'awaiting_spare_part'].includes(unit.status)) errors[`repairments.${index}.status`] = 'Select a repairment status';
+      if (!['golden', 'repaired', 'unrepairable', 'repairing', 'awaiting_spare_part'].includes(unit.status)) errors[`repairments.${index}.status`] = 'Select a unit status';
     });
+  } else if (validateRepairments && form.stored && (form.repairments || []).length && (form.repairments || []).some((unit) => unit.status !== 'golden')) {
+    errors.repairments = 'Stored units must be golden';
   } else if (form.stored) {
     if (!form.location?.warehouse?.trim()) errors['location.warehouse'] = 'Warehouse is required';
   } else if (!form.delivered_to?.trim()) {
@@ -102,7 +104,7 @@ export function toItemFormData(form, files = [], removeImageIds = []) {
   body.append('under_repairment', String(Boolean(form.under_repairment)));
   body.append('total_quantity', String(Number(form.total_quantity) || 1));
   body.append('available_quantity', String(Number(form.available_quantity) || 0));
-  const serials = form.under_repairment
+  const serials = (form.repairments || []).length
     ? (form.repairments || []).map((unit) => String(unit.serial_num || '').trim())
     : String(form.serialNumText ?? '').split(',').map((serial) => serial.trim()).filter(Boolean);
   body.append('serial_num', JSON.stringify(serials));
@@ -119,7 +121,7 @@ export function toItemFormData(form, files = [], removeImageIds = []) {
   if (form.newUpdateText?.trim()) updates.push({ text: form.newUpdateText.trim() });
   body.append('tags', JSON.stringify(parseTags(form.tagsText)));
   body.append('updates', JSON.stringify(updates));
-  if (form.under_repairment) {
+  if (form.repairments?.length) {
     const repairments = (form.repairments || []).map((unit) => ({
       serial_num: String(unit.serial_num || '').trim() || undefined,
       status: unit.status,

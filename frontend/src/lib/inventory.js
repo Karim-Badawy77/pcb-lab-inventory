@@ -7,7 +7,7 @@ export function normalizeSearch(value) {
 export function filterItems(items, criteria = {}) {
   const query = normalizeSearch(criteria.query);
   const status = criteria.status || 'all';
-  const category = normalizeSearch(criteria.category);
+  const organization = normalizeSearch(criteria.organization);
   const warehouse = normalizeSearch(criteria.warehouse);
   const tag = normalizeSearch(criteria.tag);
 
@@ -19,7 +19,7 @@ export function filterItems(items, criteria = {}) {
     if (status === 'stored' && !item.stored) return false;
     if (status === 'delivered' && item.stored) return false;
     if (status === 'repairing' && !item.under_repairment) return false;
-    if (category && normalizeSearch(item.category) !== category) return false;
+    if (organization && normalizeSearch(item.organization) !== organization) return false;
     if (warehouse && normalizeSearch(item.location?.warehouse) !== warehouse) return false;
     if (tag && !(item.tags || []).some((value) => normalizeSearch(value) === tag)) return false;
     return true;
@@ -32,7 +32,7 @@ function sortedUnique(values) {
 
 export function uniqueFilterOptions(items) {
   return {
-    categories: sortedUnique(items.map((item) => item.category)),
+    organizations: sortedUnique(items.map((item) => item.organization)),
     warehouses: sortedUnique(items.map((item) => item.location?.warehouse)),
     tags: sortedUnique(items.flatMap((item) => item.tags || []))
   };

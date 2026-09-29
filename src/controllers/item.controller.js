@@ -16,7 +16,7 @@ function parsePayload(body) {
             });
         payload.stored = payload.stored === "true";
     }
-    for (const field of ['functional', 'under_repairment']) {
+    for (const field of ['under_repairment']) {
         if (typeof payload[field] === 'string') {
             if (!['true', 'false'].includes(payload[field])) throw Object.assign(new Error(`${field} must be true or false`), { statusCode: 400 });
             payload[field] = payload[field] === 'true';

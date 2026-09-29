@@ -33,7 +33,7 @@ test('stage 2 item fields have defaults and validation', async () => {
   await expect(item.validate()).resolves.toBeUndefined();
   expect(item.part_num).toBeUndefined();
   expect(item.serial_num).toEqual([]);
-  expect(item.functional).toBe(false);
+  expect(item.toObject()).not.toHaveProperty('functional');
   expect(item.under_repairment).toBe(false);
   expect(item.edit_count).toBe(0);
   expect(item.total_quantity).toBe(1);
@@ -54,4 +54,9 @@ test('repairment validates status and structured spare parts', async () => {
   expect(repairment.deleted).toBe(false);
   expect(repairment.updates[0].text).toBe('Bench tested');
   await expect(new Repairment({ item_id: repairment.item_id, status: 'bad' }).validate()).rejects.toThrow();
+});
+
+test('golden is a valid repairment status', async () => {
+  const repairment = new Repairment({ item_id: new mongoose.Types.ObjectId(), status: 'golden' });
+  await expect(repairment.validate()).resolves.toBeUndefined();
 });

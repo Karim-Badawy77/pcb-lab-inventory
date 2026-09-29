@@ -14,6 +14,7 @@ async function createRepairment(itemId, payload) {
   return mongoose.connection.transaction(async (session) => {
     const item = await Item.findOne({ _id: itemId, deleted: false }).session(session);
     if (!item) throw new ApiError(404, 'Item not found');
+    if (payload.status === 'golden' && !item.stored) throw new ApiError(400, 'Golden units must be stored');
     if (!item.stored && payload.status !== 'delivered') {
       throw new ApiError(400, 'Repairments for a delivered item must also be delivered');
     }
@@ -41,9 +42,10 @@ async function updateRepairment(id, patch) {
     if (!repairment) throw new ApiError(404, 'Repairment not found');
     if (Object.hasOwn(patch, 'status') && patch.status !== 'delivered') {
       const item = await Item.findOne({ _id: repairment.item_id, deleted: false }).session(session);
-      if (item && !item.stored) {
+      if (item && !item.stored && patch.status !== 'golden') {
         throw new ApiError(400, 'Repairments for a delivered item must remain delivered');
       }
+      if (item && !item.stored && patch.status === 'golden') throw new ApiError(400, 'Golden units must be stored');
     }
     const before = repairment.toObject();
     if (patch.status === 'delivered') {
@@ -63,6 +65,10 @@ async function updateRepairment(id, patch) {
       await Item.updateOne({ _id: repairment.item_id, deleted: false, available_quantity: { $gt: 0 } }, { $inc: { available_quantity: -1 } }, { session });
       const remaining = await Repairment.countDocuments({ item_id: repairment.item_id, deleted: false, status: { $ne: 'delivered' } }).session(session);
       if (remaining === 0) await Item.updateOne({ _id: repairment.item_id, deleted: false }, { $set: { stored: false, under_repairment: false, location: undefined, delivered_to: repairment.delivered_to || '', delivered_by: repairment.delivered_by || '' }, $inc: { edit_count: 1 } }, { session });
+      else if (before.status !== 'golden') {
+        const pendingRepairments = await Repairment.countDocuments({ item_id: repairment.item_id, deleted: false, status: { $nin: ['delivered', 'golden'] } }).session(session);
+        if (pendingRepairments === 0) await Item.updateOne({ _id: repairment.item_id, deleted: false }, { $set: { under_repairment: false } }, { session });
+      }
     }
     await Item.updateOne({ _id: repairment.item_id, deleted: false }, { $inc: { edit_count: 1 } }, { session });
     await History.create([{ item_id: repairment.item_id, repairment_id: repairment._id, fields }], { session });
@@ -85,10 +91,14 @@ async function softDeleteRepairment(id) {
 }
 
 async function syncRepairments(item, session) {
-  if (!item.under_repairment) return [];
   const count = await Repairment.countDocuments({ item_id: item._id, deleted: false }).session(session);
+  if (count > 0) return [];
   const created = [];
-  for (let i = count; i < item.total_quantity; i += 1) created.push(await new Repairment({ item_id: item._id, status: 'repairing' }).save({ session }));
+  if (!item.under_repairment) {
+    for (let i = 0; i < item.total_quantity; i += 1) created.push(await new Repairment({ item_id: item._id, status: 'golden' }).save({ session }));
+    return created;
+  }
+  for (let i = 0; i < item.total_quantity; i += 1) created.push(await new Repairment({ item_id: item._id, status: 'repairing' }).save({ session }));
   return created;
 }
 

@@ -19,7 +19,7 @@ Repairer contributions are explicitly based on repairments registered during the
 - Items repaired, awaiting spare parts, or unrepairable: distinct parent items with at least one active repairment in the corresponding current status. A parent with mixed unit statuses can appear in multiple counts; physical unit subtotals are omitted for these mixed-status parent counts to avoid implying that every unit shares that status.
 - Repairment status counts cover `repairing`, `awaiting_spare_part`, `repaired`, `unrepairable`, and `delivered`.
 - Repaired awaiting delivery means repairments with current status `repaired`. This is a repairment/unit count.
-- Functional items use the item-level `functional` flag; do not infer functionality from repairment status.
+- Golden unit records represent functional units with no repair history. Count them separately from non-golden repairments; functionality must not be inferred for repaired units.
 - Delivered items use `stored: false`; delivered repairments use status `delivered`. Keep these totals separate and never add them together.
 - Trim repairer names and deduplicate case-insensitively within each record. Use a consistent display spelling and merge matching names across records. A record with multiple repairers credits each person once, so contributions can exceed the repairment count.
 
@@ -27,7 +27,7 @@ Repairer contributions are explicitly based on repairments registered during the
 
 Add `/statistics` and a navigation link using the existing app styling and responsive patterns.
 
-1. Overview cards: registered items, physical units, registered repairments, and functional items.
+1. Overview cards: registered items, physical units, registered non-golden repairments, and golden units.
 2. Current inventory: location and item classifications, plus a complete repairment status breakdown. Clearly identify record versus unit counts.
 3. Period activity: date controls, delivered item records and units, delivered repairments, a monthly delivery chart with separate item and repairment series, repairer contributions, and spare-part costs.
 4. Follow-up: repaired awaiting delivery and backlog age groups.

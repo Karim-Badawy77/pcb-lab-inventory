@@ -21,6 +21,19 @@ async function migrateQuantities() {
       ],
     );
     console.log(`Migrated quantities on ${result.modifiedCount} item(s).`);
+
+    const items = mongoose.connection.collection('items');
+    const repairments = mongoose.connection.collection('repairments');
+    const functionalItems = await items.find({ functional: true }).project({ _id: 1, total_quantity: 1, quantity: 1 }).toArray();
+    for (const item of functionalItems) {
+      const existing = await repairments.countDocuments({ item_id: item._id, deleted: { $ne: true } });
+      const unitCount = item.total_quantity || item.quantity || 1;
+      for (let index = existing; index < unitCount; index += 1) {
+        await repairments.insertOne({ item_id: item._id, status: 'golden', deleted: false, field_test_date: [], repairer: [], spare_part: [], updates: [], createdAt: new Date(), updatedAt: new Date() });
+      }
+    }
+    const removedFunctional = await items.updateMany({}, { $unset: { functional: '' } });
+    console.log(`Converted ${functionalItems.length} functional item(s) to golden unit records and removed functional from ${removedFunctional.modifiedCount} item(s).`);
   } finally {
     await mongoose.disconnect();
   }
