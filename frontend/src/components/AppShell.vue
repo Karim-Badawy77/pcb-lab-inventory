@@ -3,10 +3,10 @@
         <header class="site-header">
             <RouterLink class="brand" to="/items"
                 ><span class="brand-mark">
-                    <img src="/assets/PCB Logo1.png" alt="PCB LAB logo" />
+                    <img src="/assets/PCB Logo1.png" alt="LabLedger logo" />
                 </span>
                 <span>
-                    <strong>PCB LAB</strong><small>Inventory</small></span
+                    <strong>LabLedger</strong><small>Inventory</small></span
                 ></RouterLink
             >
             <nav aria-label="Primary navigation">
@@ -26,7 +26,7 @@
         </header>
         <RouterView />
         <footer class="site-footer">
-            <span>PCB LAB / INVENTORY</span>
+            <span>LabLedger / Inventory</span>
             <span class="developer-credit"
                 >This application was developed by
                 <a

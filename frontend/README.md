@@ -1,6 +1,6 @@
-# PCB Lab Inventory Frontend
+# LabLedger Frontend
 
-Mobile-first Vue 3 interface for the PCB Lab Inventory API. The root project owns dependencies, scripts, tests, and the production build. It does not load Vue, fonts, scripts, or styles from a CDN.
+Mobile-first Vue 3 interface for the LabLedger API. The root project owns dependencies, scripts, tests, and the production build. It does not load Vue, fonts, scripts, or styles from a CDN.
 
 ## Requirements
 

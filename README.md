@@ -1,6 +1,6 @@
-# PCB Lab Inventory
+# LabLedger
 
-PCB Lab Inventory catalogs physical PCB-lab items, tracks storage or delivery state, records repairments, stores images, and maintains transaction history.
+LabLedger catalogs physical lab items, tracks storage or delivery state, records repairments, stores images, and maintains transaction history.
 
 The repository contains the API and Vue frontend in one runnable project:
 
