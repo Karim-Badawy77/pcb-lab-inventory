@@ -33,7 +33,61 @@ const items = [
 ];
 
 describe('InventoryPage', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.removeItem('inventory-view');
+  });
+
+  it('switches between grid and list views and remembers the selection', async () => {
+    fetchAllItems.mockResolvedValue(items);
+    const router = testRouter();
+    await router.push('/items');
+    await router.isReady();
+    const wrapper = mount(InventoryPage, { global: { plugins: [router] } });
+    await flushPromises();
+
+    const inventory = wrapper.get('[data-testid="inventory-items"]');
+    expect(inventory.classes()).toContain('inventory-grid');
+
+    await wrapper.get('[data-view="list"]').trigger('click');
+    expect(inventory.classes()).toContain('inventory-list');
+    expect(localStorage.getItem('inventory-view')).toBe('list');
+
+    await wrapper.get('[data-view="grid"]').trigger('click');
+    expect(inventory.classes()).toContain('inventory-grid');
+    expect(localStorage.getItem('inventory-view')).toBe('grid');
+  });
+
+  it('restores the saved list view', async () => {
+    localStorage.setItem('inventory-view', 'list');
+    fetchAllItems.mockResolvedValue(items);
+    const router = testRouter();
+    await router.push('/items');
+    await router.isReady();
+    const wrapper = mount(InventoryPage, { global: { plugins: [router] } });
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="inventory-items"]').classes()).toContain('inventory-list');
+    expect(wrapper.get('[data-view="list"]').attributes('aria-pressed')).toBe('true');
+  });
+
+  it('shows compact inventory rows with status and quantity in list view', async () => {
+    fetchAllItems.mockResolvedValue(items);
+    const router = testRouter();
+    await router.push('/items');
+    await router.isReady();
+    const wrapper = mount(InventoryPage, { global: { plugins: [router] } });
+    await flushPromises();
+    await wrapper.get('[data-view="list"]').trigger('click');
+
+    expect(wrapper.findAll('.inventory-row')).toHaveLength(3);
+    expect(wrapper.get('.inventory-row').text()).toContain('Motor Controller');
+    expect(wrapper.get('.inventory-row').text()).toContain('PCB-042');
+    expect(wrapper.get('.inventory-row').text()).toContain('W1 / S2 / P3');
+    expect(wrapper.get('.inventory-row').text()).toContain('Stored');
+    expect(wrapper.get('.inventory-row').text()).toContain('1 available');
+    expect(wrapper.find('.inventory-list .card-open').exists()).toBe(false);
+  });
 
   it('loads inventory and combines search with status filtering', async () => {
     fetchAllItems.mockResolvedValue(items);

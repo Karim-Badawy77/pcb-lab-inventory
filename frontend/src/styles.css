@@ -66,7 +66,28 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .text-button { min-height: 2.75rem; border: 0; color: var(--green-2); background: transparent; cursor: pointer; font-weight: 800; }
 .results-row { padding: 1.25rem 1rem .7rem; display: flex; justify-content: space-between; color: var(--muted); font-size: .82rem; }
 .results-row strong { color: var(--ink); }
+.view-toggle { display: inline-flex; gap: .2rem; padding: .2rem; border: 1px solid var(--line); border-radius: .6rem; background: var(--paper); }
+.view-toggle button { min-height: 2rem; padding: 0 .65rem; border: 0; border-radius: .4rem; color: var(--muted); background: transparent; cursor: pointer; font: inherit; font-size: .75rem; font-weight: 800; }
+.view-toggle button.active { color: var(--paper); background: var(--green-2); }
 .inventory-grid { padding: 0 1rem 2rem; display: grid; gap: 1rem; }
+.inventory-list { margin: 0 1rem 2rem; overflow: hidden; background: var(--paper); border: 1px solid var(--line); border-radius: .85rem; box-shadow: 0 8px 30px rgb(31 54 39 / 5%); }
+.inventory-list .inventory-row { min-height: 5.25rem; padding: .7rem .8rem; display: grid; grid-template-columns: 3.5rem minmax(0, 1fr) minmax(12rem, auto) 1.5rem; align-items: center; gap: .85rem; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none; }
+.inventory-list .inventory-row:last-child { border-bottom: 0; }
+.inventory-list .inventory-row:hover { z-index: 1; position: relative; background: #f6f4ec; box-shadow: inset 3px 0 var(--lime); transform: none; }
+.inventory-row__thumb { width: 3.5rem; height: 3.5rem; position: relative; display: block; overflow: hidden; border-radius: .55rem; background: #dce1d7; }
+.inventory-row__thumb > img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.inventory-row__thumb .pcb-placeholder { position: absolute; inset: 0; }
+.inventory-row__thumb .pcb-placeholder b { padding: .3rem; font-size: .55rem; }
+.inventory-row__content { min-width: 0; display: grid; gap: .14rem; }
+.inventory-row__content .part-number { font-size: .62rem; }
+.inventory-row__name { overflow: hidden; color: var(--ink); font-family: Georgia, serif; font-size: 1.08rem; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.inventory-row__location { overflow: hidden; color: var(--muted); font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.inventory-row__meta { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.inventory-list .inventory-row .status-badge { position: static; min-height: 1.65rem; padding: .3rem .55rem; font-size: .58rem; backdrop-filter: none; }
+.inventory-row__quantity { color: var(--muted); font-size: .72rem; white-space: nowrap; }
+.inventory-row__quantity strong { color: var(--ink); font-size: .85rem; }
+.inventory-row__arrow { color: var(--green-2); font-size: 1.05rem; font-weight: 800; transition: transform .18s ease; }
+.inventory-row:hover .inventory-row__arrow { transform: translate(2px, -2px); }
 .inventory-card { overflow: hidden; display: block; color: inherit; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 8px 30px rgb(31 54 39 / 6%); text-decoration: none; transition: transform .18s ease, box-shadow .18s ease; }
 .inventory-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .card-image { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #dce1d7; }
@@ -217,6 +238,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .hero-add { width: auto; padding: 0 1rem; border-radius: .7rem; font-size: .82rem; }
   .advanced-filters { grid-template-columns: repeat(3, 1fr) auto; align-items: end; }
   .results-row, .inventory-grid { padding-inline: 2rem; }
+  .inventory-list { margin-inline: 2rem; }
   .inventory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .field-grid--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -232,6 +254,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 @media (min-width: 75rem) {
   .inventory-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 30rem) {
+  .results-row { align-items: center; gap: .5rem; padding-inline: .75rem; }
+  .inventory-list { margin-inline: .75rem; }
+  .inventory-list .inventory-row { grid-template-columns: 3rem minmax(0, 1fr) auto; gap: .65rem; padding: .65rem; }
+  .inventory-row__thumb { width: 3rem; height: 3rem; }
+  .inventory-row__name { font-size: 1rem; }
+  .inventory-row__meta { grid-column: 2; justify-content: flex-start; gap: .65rem; }
+  .inventory-list .inventory-row .status-badge { min-height: 1.45rem; padding: .2rem .45rem; font-size: .52rem; }
+  .inventory-row__quantity { font-size: .66rem; }
+  .inventory-row__quantity strong { font-size: .76rem; }
+  .inventory-row__arrow { grid-column: 3; grid-row: 1 / span 2; }
 }
 
 @media (prefers-reduced-motion: reduce) {

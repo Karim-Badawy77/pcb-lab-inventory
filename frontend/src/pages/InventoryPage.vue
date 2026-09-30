@@ -9,6 +9,7 @@ const items = ref([]);
 const loading = ref(true);
 const error = ref('');
 const filtersOpen = ref(false);
+const inventoryView = ref(localStorage.getItem('inventory-view') === 'list' ? 'list' : 'grid');
 const criteria = reactive({ query: '', status: 'all', organization: '', warehouse: '', tag: '' });
 
 const options = computed(() => uniqueFilterOptions(items.value));
@@ -25,6 +26,11 @@ async function loadItems() {
 
 function clearFilters() {
   Object.assign(criteria, { query: '', status: 'all', organization: '', warehouse: '', tag: '' });
+}
+
+function setInventoryView(view) {
+  inventoryView.value = view;
+  localStorage.setItem('inventory-view', view);
 }
 
 onMounted(loadItems);
@@ -57,8 +63,16 @@ onMounted(loadItems);
       <div v-for="index in 4" :key="index" class="card-skeleton"><span></span><span></span></div>
     </div>
     <section v-else-if="visibleItems.length" aria-live="polite">
-      <div class="results-row"><strong>{{ visibleItems.length }} result{{ visibleItems.length === 1 ? '' : 's' }}</strong><span>Newest first</span></div>
-      <div class="inventory-grid"><InventoryCard v-for="item in visibleItems" :key="item._id" :item="item" /></div>
+      <div class="results-row">
+        <strong>{{ visibleItems.length }} result{{ visibleItems.length === 1 ? '' : 's' }}</strong>
+        <div class="view-toggle" role="group" aria-label="Item view">
+          <button type="button" data-view="grid" :aria-pressed="inventoryView === 'grid'" :class="{ active: inventoryView === 'grid' }" @click="setInventoryView('grid')">Grid</button>
+          <button type="button" data-view="list" :aria-pressed="inventoryView === 'list'" :class="{ active: inventoryView === 'list' }" @click="setInventoryView('list')">List</button>
+        </div>
+      </div>
+      <div data-testid="inventory-items" :class="inventoryView === 'grid' ? 'inventory-grid' : 'inventory-list'">
+        <InventoryCard v-for="item in visibleItems" :key="item._id" :item="item" :view="inventoryView" />
+      </div>
     </section>
     <section v-else class="state-panel state-panel--empty">
       <span class="empty-symbol">⌁</span>
