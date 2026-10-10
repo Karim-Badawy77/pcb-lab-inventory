@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+<defs>
+ <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1,1 L11,6 L1,11 Z" fill="#147D92"/></marker>
+ <marker id="arrowDash" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1,1 L11,6 L1,11 Z" fill="#52616B"/></marker>
+ <style>
+ .title{font:700 34px Arial,sans-serif;fill:#17324D}.subtitle{font:16px Arial,sans-serif;fill:#52616B}
+ .head{font:700 22px Arial,sans-serif;fill:#fff}.meta{font:14px Arial,sans-serif;fill:#dce8ef}
+ .field{font:16px Arial,sans-serif;fill:#263238}.muted{font:14px Arial,sans-serif;fill:#52616B}
+ .box{fill:#fff;stroke:#17324D;stroke-width:2;rx:14}.bar{fill:#17324D}.embed{fill:#f1f7f9;stroke:#147D92;stroke-width:2;rx:12}
+ .rel{font:700 14px Arial,sans-serif;fill:#147D92}.line{stroke:#147D92;stroke-width:3;fill:none;marker-end:url(#arrow)}
+ .optional{stroke:#52616B;stroke-width:3;stroke-dasharray:9 7;fill:none;marker-end:url(#arrowDash)}
+ </style>
+</defs>
+<rect width="1400" height="900" fill="#fbfcfd"/>
+<text x="60" y="70" class="title">LabLedger Database Schema</text>
+<text x="60" y="102" class="subtitle">MongoDB collections and references defined by the current Mongoose models</text>
+<!-- item collection -->
+<rect x="70" y="170" width="510" height="480" class="box"/>
+<path d="M84 170 H566 Q580 170 580 184 V225 H70 V184 Q70 170 84 170Z" class="bar"/>
+<text x="100" y="207" class="head">items</text><text x="500" y="205" class="meta" text-anchor="end">collection</text>
+<text x="100" y="260" class="field"><tspan font-weight="bold">_id</tspan> : ObjectId</text>
+<text x="100" y="292" class="field">name, part_num, type</text>
+<text x="100" y="324" class="field">stored, deleted, location</text>
+<text x="100" y="356" class="field">owner, organization, serial_num</text>
+<text x="100" y="388" class="field">under_repairment</text>
+<text x="100" y="420" class="field">total_quantity, available_quantity</text>
+<text x="100" y="452" class="field">description, tags, edit_count</text>
+<text x="100" y="484" class="field">delivered_by, delivered_to</text>
+<text x="100" y="516" class="field">dates.created, dates.modified</text>
+<rect x="100" y="545" width="215" height="76" class="embed"/>
+<text x="118" y="574" class="rel">Embedded records</text><text x="118" y="599" class="muted">images[] and updates[]</text>
+<rect x="337" y="545" width="215" height="76" class="embed"/>
+<text x="355" y="574" class="rel">Embedded object</text><text x="355" y="599" class="muted">location (no _id)</text>
+<!-- repairments -->
+<rect x="830" y="170" width="500" height="350" class="box"/>
+<path d="M844 170 H1316 Q1330 170 1330 184 V225 H830 V184 Q830 170 844 170Z" class="bar"/>
+<text x="860" y="207" class="head">repairments</text><text x="1295" y="205" class="meta" text-anchor="end">collection</text>
+<text x="860" y="260" class="field"><tspan font-weight="bold">_id</tspan> : ObjectId</text>
+<text x="860" y="292" class="field"><tspan font-weight="bold">item_id</tspan> : ObjectId → items._id</text>
+<text x="860" y="324" class="field">serial_num, status, deleted</text>
+<text x="860" y="356" class="field">delivered_to, delivered_by, delivered_at</text>
+<text x="860" y="388" class="field">field_test_date[], repairer[]</text>
+<text x="860" y="420" class="field">createdAt, updatedAt</text>
+<rect x="860" y="444" width="430" height="54" class="embed"/>
+<text x="880" y="477" class="rel">Embedded: spare_part[] and updates[]</text>
+<!-- history -->
+<rect x="830" y="600" width="500" height="235" class="box"/>
+<path d="M844 600 H1316 Q1330 600 1330 614 V655 H830 V614 Q830 600 844 600Z" class="bar"/>
+<text x="860" y="637" class="head">history</text><text x="1295" y="635" class="meta" text-anchor="end">collection</text>
+<text x="860" y="690" class="field"><tspan font-weight="bold">_id</tspan> : ObjectId</text>
+<text x="860" y="722" class="field"><tspan font-weight="bold">item_id</tspan> : ObjectId → items._id</text>
+<text x="860" y="754" class="field"><tspan font-weight="bold">repairment_id</tspan> : ObjectId | null</text>
+<text x="860" y="786" class="field">fields[] and date</text>
+<!-- relationship arrows with labels -->
+<path d="M580 285 C670 285 700 290 830 290" class="line"/>
+<rect x="622" y="248" width="174" height="32" rx="8" fill="#fbfcfd"/><text x="709" y="270" class="rel" text-anchor="middle">1 item : many units</text>
+<path d="M580 440 C690 440 700 715 830 715" class="line"/>
+<rect x="608" y="492" width="196" height="48" rx="8" fill="#fbfcfd"/><text x="706" y="512" class="rel" text-anchor="middle">1 item : many</text><text x="706" y="531" class="rel" text-anchor="middle">history entries</text>
+<path d="M1080 520 C1080 555 1080 560 1080 600" class="optional"/>
+<text x="1100" y="568" class="rel">optional reference</text>
+<text x="70" y="755" class="muted">Solid arrows: required parent reference. Dashed arrow: optional history-to-repairment reference.</text>
+<text x="70" y="785" class="muted">Embedded records are stored within their parent document; they are not separate collections.</text>
+<text x="70" y="850" class="muted">Source: src/models/item.model.js, repairment.model.js, and history.model.js</text>
+</svg>
