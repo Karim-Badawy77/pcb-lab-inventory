@@ -64,6 +64,30 @@ describe('ItemDetailPage', () => {
     wrapper.unmount();
   });
 
+  it('adds the entered number of units and refreshes the item', async () => {
+    apiRequest.mockResolvedValueOnce(detail).mockResolvedValueOnce([])
+      .mockResolvedValueOnce({ ...detail, total_quantity: 5, available_quantity: 5 })
+      .mockResolvedValueOnce({ ...detail, total_quantity: 5, available_quantity: 5 })
+      .mockResolvedValueOnce([]);
+    const router = testRouter();
+    await router.push('/items/item-1');
+    await router.isReady();
+    const wrapper = mount(ItemDetailPage, { attachTo: document.body, global: { plugins: [router] } });
+    await flushPromises();
+
+    await wrapper.get('[data-testid="open-add-units"]').trigger('click');
+    await wrapper.get('[name="units"]').setValue('2');
+    await wrapper.get('[data-testid="confirm-add-units"]').trigger('click');
+    await flushPromises();
+
+    expect(apiRequest).toHaveBeenCalledWith('/api/items/item-1/units', {
+      method: 'POST', body: JSON.stringify({ quantity: 2 })
+    });
+    expect(wrapper.text()).toContain('5');
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
+    wrapper.unmount();
+  });
+
   it('shows a retry state when item loading fails', async () => {
     apiRequest.mockRejectedValueOnce(new Error('Item unavailable')).mockResolvedValueOnce(detail).mockResolvedValueOnce([]);
     const router = testRouter();

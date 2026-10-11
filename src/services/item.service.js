@@ -239,6 +239,29 @@ async function updateItem(id, patch, files = []) {
     }
 }
 
+async function addUnits(id, quantity) {
+    assertId(id);
+    const amount = Number(quantity);
+    if (!Number.isInteger(amount) || amount < 1) throw new ApiError(400, "Quantity must be a positive whole number");
+    return mongoose.connection.transaction(async (session) => {
+        const item = await Item.findOne({ _id: id, deleted: false }).session(session);
+        if (!item) throw new ApiError(404, "Item not found");
+        const from = { total_quantity: item.total_quantity, available_quantity: item.available_quantity };
+        item.total_quantity += amount;
+        item.available_quantity += amount;
+        item.edit_count = (item.edit_count || 0) + 1;
+        await item.save({ session });
+        await History.create([{
+            item_id: item._id,
+            fields: [
+                { field_name: "total_quantity", from: from.total_quantity, to: item.total_quantity },
+                { field_name: "available_quantity", from: from.available_quantity, to: item.available_quantity },
+            ],
+        }], { session });
+        return item;
+    });
+}
+
 async function softDeleteItem(id) {
     assertId(id);
     let deleted;
@@ -263,4 +286,4 @@ async function softDeleteItem(id) {
     return deleted;
 }
 
-module.exports = { createItem, listItems, getItem, updateItem, softDeleteItem };
+module.exports = { createItem, listItems, getItem, updateItem, addUnits, softDeleteItem };

@@ -4,6 +4,7 @@ import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import FeedbackMessage from "@/components/FeedbackMessage.vue";
 import StatusBadge from "@/components/StatusBadge.vue";
 import DeleteItemDialog from "@/features/item-detail/DeleteItemDialog.vue";
+import AddUnitsDialog from "@/features/item-detail/AddUnitsDialog.vue";
 import HistoryTimeline from "@/features/item-detail/HistoryTimeline.vue";
 import RepairmentCard from "@/features/item-detail/RepairmentCard.vue";
 import ImageGallery from "@/features/item-detail/ImageGallery.vue";
@@ -29,6 +30,10 @@ const deleteOpen = ref(false);
 const deleteBusy = ref(false);
 const deleteError = ref("");
 const deleteTrigger = ref(null);
+const addUnitsOpen = ref(false);
+const addUnitsBusy = ref(false);
+const addUnitsError = ref("");
+const addUnitsTrigger = ref(null);
 
 async function loadItem() {
     loading.value = true;
@@ -53,6 +58,33 @@ async function loadItem() {
 function openDelete() {
     deleteError.value = "";
     deleteOpen.value = true;
+}
+
+function openAddUnits() {
+    addUnitsError.value = "";
+    addUnitsOpen.value = true;
+}
+
+async function closeAddUnits() {
+    if (addUnitsBusy.value) return;
+    addUnitsOpen.value = false;
+    await Promise.resolve();
+    addUnitsTrigger.value?.focus();
+}
+
+async function addUnits(quantity) {
+    addUnitsBusy.value = true;
+    addUnitsError.value = "";
+    try {
+        await apiRequest(`/api/items/${item.value._id}/units`, { method: "POST", body: JSON.stringify({ quantity }) });
+        addUnitsOpen.value = false;
+        success.value = `${quantity} unit${quantity === 1 ? "" : "s"} added.`;
+        await loadItem();
+    } catch (requestError) {
+        addUnitsError.value = requestError.message;
+    } finally {
+        addUnitsBusy.value = false;
+    }
 }
 
 async function closeDelete() {
@@ -120,12 +152,15 @@ onBeforeRouteLeave(
                         <span class="part-number">{{ item.part_num }}</span>
                         <h1>{{ item.name }}</h1>
                     </div>
+                    <div class="detail-heading-actions">
+                    <button ref="addUnitsTrigger" type="button" class="button button--lime" data-testid="open-add-units" @click="openAddUnits">Add units</button>
                     <RouterLink
                         class="button button--lime"
                         data-testid="edit-item"
                         :to="`/items/${item._id}/edit`"
                         >Edit item</RouterLink
                     >
+                    </div>
                 </div>
                 <div class="detail-status">
                     <StatusBadge
@@ -296,6 +331,7 @@ onBeforeRouteLeave(
                 @confirm="deleteItem"
                 @close="closeDelete"
             />
+            <AddUnitsDialog v-if="addUnitsOpen" :busy="addUnitsBusy" :error="addUnitsError" @confirm="addUnits" @close="closeAddUnits" />
         </template>
     </main>
 </template>

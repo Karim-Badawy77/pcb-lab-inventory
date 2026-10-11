@@ -59,14 +59,11 @@ function setUnderRepair() {
 function setStoredStatus() {
     form.under_repairment = false;
     form.stored = true;
-    while (form.repairments.length < Number(form.total_quantity || 1)) form.repairments.push({ status: "golden", serial_num: "" });
-    form.repairments.splice(Number(form.total_quantity || 1));
 }
 function setQuantity(value) {
     form.total_quantity = Math.max(1, Number(value) || 1);
     form.available_quantity = Math.min(form.available_quantity, form.total_quantity);
     if (form.under_repairment) setUnderRepair();
-    else if (props.creationMode && form.stored) setStoredStatus();
 }
 
 function onImagesChange(payload) {

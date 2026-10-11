@@ -14,4 +14,6 @@ router
     .patch(upload.array("images"), controller.update)
     .delete(controller.remove);
 
+router.post("/:id/units", controller.addUnits);
+
 module.exports = router;

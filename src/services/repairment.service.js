@@ -94,10 +94,7 @@ async function syncRepairments(item, session) {
   const count = await Repairment.countDocuments({ item_id: item._id, deleted: false }).session(session);
   if (count > 0) return [];
   const created = [];
-  if (!item.under_repairment) {
-    for (let i = 0; i < item.total_quantity; i += 1) created.push(await new Repairment({ item_id: item._id, status: 'golden' }).save({ session }));
-    return created;
-  }
+  if (!item.under_repairment) return created;
   for (let i = 0; i < item.total_quantity; i += 1) created.push(await new Repairment({ item_id: item._id, status: 'repairing' }).save({ session }));
   return created;
 }

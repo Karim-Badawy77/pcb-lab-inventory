@@ -73,9 +73,14 @@ const update = asyncController(async (req, res) => {
     res.json({ success: true, data: item });
 });
 
+const addUnits = asyncController(async (req, res) => {
+    const item = await itemService.addUnits(req.params.id, req.body.quantity);
+    res.json({ success: true, data: item });
+});
+
 const remove = asyncController(async (req, res) => {
     const item = await itemService.softDeleteItem(req.params.id);
     res.json({ success: true, data: item });
 });
 
-module.exports = { create, list, get, update, remove };
+module.exports = { create, list, get, update, addUnits, remove };

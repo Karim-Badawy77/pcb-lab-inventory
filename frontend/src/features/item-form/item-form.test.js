@@ -74,6 +74,15 @@ describe('item form domain', () => {
 });
 
 describe('ItemForm', () => {
+  it('does not add golden units when a new item is stored', async () => {
+    const wrapper = mount(ItemForm, { props: { initialItem: emptyItemForm(), creationMode: true } });
+    await wrapper.get('[value="stored"]').setValue();
+    await wrapper.get('[name="name"]').setValue('Stock controller');
+    await wrapper.get('[name="warehouse"]').setValue('W1');
+    await wrapper.get('form').trigger('submit');
+    expect(wrapper.emitted('submit')[0][0].form.repairments).toEqual([]);
+  });
+
   it('shows only serial number and status for golden units on the new item page', () => {
     const wrapper = mount(ItemForm, {
       props: {

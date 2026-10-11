@@ -28,13 +28,12 @@ test('under-repair item is normalized to lab and gets one repairment per quantit
   expect(await Repairment.countDocuments({ item_id: response.body.data._id, deleted: false })).toBe(2);
 });
 
-test('stored items get golden unit records and golden does not count as repairment', async () => {
+test('stored items rely on available quantity and do not get automatic unit records', async () => {
   const response = await request(app).post('/api/items').send({ name: 'Stock controller', stored: true, total_quantity: 2, location: { warehouse: 'W' } });
   expect(response.status).toBe(201);
   const rows = await Repairment.find({ item_id: response.body.data._id, deleted: false });
-  expect(rows).toHaveLength(2);
-  expect(rows.every((row) => row.status === 'golden')).toBe(true);
-  expect(rows.filter((row) => row.status !== 'golden')).toHaveLength(0);
+  expect(rows).toHaveLength(0);
+  expect(response.body.data.available_quantity).toBe(2);
 });
 
 test('creates an item with multiple submitted repairment units', async () => {

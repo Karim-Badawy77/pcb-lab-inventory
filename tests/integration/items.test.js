@@ -73,6 +73,22 @@ test('soft deletes one image and keeps it out of public item detail', async () =
   expect(deletedImage.body.data.images.find((image) => image._id === removeId)).toMatchObject({ deleted: true });
 });
 
+test('adding units increments total and available quantities for delivered items', async () => {
+  const created = await request(app).post('/api/items').send({
+    name: 'Delivered controller', stored: false, delivered_to: 'Assembly', total_quantity: 3, available_quantity: 0,
+  });
+  const response = await request(app).post(`/api/items/${created.body.data._id}/units`).send({ quantity: 2 });
+  expect(response.status).toBe(200);
+  expect(response.body.data).toMatchObject({ total_quantity: 5, available_quantity: 2, stored: false });
+  expect(await History.exists({ item_id: created.body.data._id, 'fields.field_name': 'available_quantity' })).toBeTruthy();
+});
+
+test('rejects invalid added unit quantities', async () => {
+  const created = await createStoredItem();
+  const response = await request(app).post(`/api/items/${created.body.data._id}/units`).send({ quantity: 0 });
+  expect(response.status).toBe(400);
+});
+
 test('persists the chosen image order', async () => {
   const created = await request(app).post('/api/items')
     .field('name', 'Controller').field('part_num', 'C-1').field('stored', 'false').field('delivered_to', 'Lab')
