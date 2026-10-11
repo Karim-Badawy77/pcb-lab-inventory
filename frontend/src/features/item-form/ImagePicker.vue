@@ -9,9 +9,10 @@ const emit = defineEmits(["change"]);
 const files = ref([]);
 const removedIds = ref([]);
 const previews = ref([]);
+const imageIds = ref(props.existingImages.map((image) => image._id));
 
 const retainedImages = computed(() =>
-    props.existingImages.filter(
+    imageIds.value.map((id) => props.existingImages.find((image) => image._id === id)).filter(Boolean).filter(
         (image) => !removedIds.value.includes(image._id),
     ),
 );
@@ -24,6 +25,7 @@ function notify() {
     emit("change", {
         files: [...files.value],
         removeImageIds: [...removedIds.value],
+        imageOrder: retainedImages.value.map((image) => image._id),
         retainedImageCount: retainedImages.value.length,
     });
 }
@@ -47,6 +49,16 @@ function removeNew(index) {
 
 function removeExisting(id) {
     removedIds.value.push(id);
+    notify();
+}
+
+function moveExisting(id, offset) {
+    const currentIndex = imageIds.value.indexOf(id);
+    const nextIndex = currentIndex + offset;
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= imageIds.value.length) return;
+    const reordered = [...imageIds.value];
+    [reordered[currentIndex], reordered[nextIndex]] = [reordered[nextIndex], reordered[currentIndex]];
+    imageIds.value = reordered;
     notify();
 }
 
@@ -112,11 +124,15 @@ onBeforeUnmount(revokePreviews);
                 />
                 <button
                     type="button"
-                    aria-label="Remove existing image"
+                    :aria-label="`Soft delete ${image.originalName || 'existing image'}`"
                     @click="removeExisting(image._id)"
                 >
                     ×
                 </button>
+                <div class="image-order-controls">
+                    <button type="button" :disabled="retainedImages[0]?._id === image._id" :aria-label="`Move ${image.originalName || 'image'} earlier`" @click="moveExisting(image._id, -1)">↑</button>
+                    <button type="button" :disabled="retainedImages.at(-1)?._id === image._id" :aria-label="`Move ${image.originalName || 'image'} later`" @click="moveExisting(image._id, 1)">↓</button>
+                </div>
             </figure>
             <figure
                 v-for="(preview, index) in previews"

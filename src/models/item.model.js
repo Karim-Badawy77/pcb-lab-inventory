@@ -13,6 +13,9 @@ const imageSchema = new mongoose.Schema({
     path: { type: String, required: true },
     originalName: { type: String, required: true },
     uploadedAt: { type: Date, default: Date.now },
+    deleted: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
+    order: { type: Number, default: 0 },
 });
 
 const updateSchema = new mongoose.Schema({

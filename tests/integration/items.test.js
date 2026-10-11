@@ -58,7 +58,7 @@ test('returns validation errors in stable envelope', async () => {
   expect(response.body).toMatchObject({ success: false });
 });
 
-test('removes one image by its subdocument id', async () => {
+test('soft deletes one image and keeps it out of public item detail', async () => {
   const created = await request(app).post('/api/items')
     .field('name', 'Controller').field('part_num', 'C-1').field('stored', 'false').field('delivered_to', 'Lab')
     .attach('images', Buffer.from('one'), { filename: 'one.png', contentType: 'image/png' })
@@ -68,6 +68,21 @@ test('removes one image by its subdocument id', async () => {
     .field('removeImageIds', JSON.stringify([removeId]));
   expect(updated.status).toBe(200);
   expect(updated.body.data.images).toHaveLength(1);
+  const deletedImage = await request(app).get(`/api/items/${created.body.data._id}?includeDeleted=true`);
+  expect(deletedImage.body.data.images).toHaveLength(2);
+  expect(deletedImage.body.data.images.find((image) => image._id === removeId)).toMatchObject({ deleted: true });
+});
+
+test('persists the chosen image order', async () => {
+  const created = await request(app).post('/api/items')
+    .field('name', 'Controller').field('part_num', 'C-1').field('stored', 'false').field('delivered_to', 'Lab')
+    .attach('images', Buffer.from('one'), { filename: 'one.png', contentType: 'image/png' })
+    .attach('images', Buffer.from('two'), { filename: 'two.png', contentType: 'image/png' });
+  const ids = created.body.data.images.map((image) => image._id).reverse();
+  const updated = await request(app).patch(`/api/items/${created.body.data._id}`).field('imageOrder', JSON.stringify(ids));
+  expect(updated.status).toBe(200);
+  const detail = await request(app).get(`/api/items/${created.body.data._id}`);
+  expect(detail.body.data.images.map((image) => image._id)).toEqual(ids);
 });
 
 test('rejects unsupported image types', async () => {

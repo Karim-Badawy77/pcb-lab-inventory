@@ -1,7 +1,7 @@
 const itemService = require("../services/item.service");
 const { removeFiles } = require("../services/file.service");
 
-const JSON_FIELDS = ["location", "tags", "updates", "removeImageIds", "serial_num", "repairments"];
+const JSON_FIELDS = ["location", "tags", "updates", "removeImageIds", "imageOrder", "serial_num", "repairments"];
 
 function parsePayload(body) {
     const payload = { ...body };
@@ -61,7 +61,7 @@ const get = asyncController(async (req, res) => {
     const { item, history } = await itemService.getItem(req.params.id, {
         includeDeleted: req.query.includeDeleted === "true",
     });
-    res.json({ success: true, data: { ...item.toObject(), history } });
+    res.json({ success: true, data: { ...item, history } });
 });
 
 const update = asyncController(async (req, res) => {

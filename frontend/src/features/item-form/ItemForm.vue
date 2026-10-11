@@ -18,7 +18,8 @@ const form = reactive(itemToForm(props.initialItem));
 const errors = ref({});
 const files = ref([]);
 const removeImageIds = ref([]);
-const retainedImageCount = ref(props.initialItem.images?.length || 0);
+const imageOrder = ref([]);
+const retainedImageCount = ref(form.images?.length || 0);
 const ready = ref(false);
 
 const errorSummary = computed(() => Object.values(errors.value));
@@ -71,6 +72,7 @@ function setQuantity(value) {
 function onImagesChange(payload) {
     files.value = payload.files;
     removeImageIds.value = payload.removeImageIds;
+    imageOrder.value = payload.imageOrder;
     retainedImageCount.value = payload.retainedImageCount;
     emit("dirty-change", true);
 }
@@ -87,6 +89,7 @@ function submit() {
         form: itemToForm(form),
         files: [...files.value],
         removeImageIds: [...removeImageIds.value],
+        imageOrder: [...imageOrder.value],
     });
 }
 </script>
@@ -289,7 +292,7 @@ function submit() {
         </section>
 
         <ImagePicker
-            :existing-images="initialItem.images || []"
+            :existing-images="form.images || []"
             :error="errors.images"
             @change="onImagesChange"
         />

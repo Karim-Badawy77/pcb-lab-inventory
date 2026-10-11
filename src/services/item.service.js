@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const path = require("path");
 const Item = require("../models/item.model");
 const History = require("../models/history.model");
 const { buildFieldChanges, plain } = require('./history.service');
@@ -39,7 +38,7 @@ function imageRecords(files) {
         path: `/uploads/${file.filename}`,
         originalName: file.originalname,
         uploadedAt: new Date(),
-    }));
+    })).map((image, order) => ({ ...image, order }));
 }
 
 async function createItem(payload, files = []) {
@@ -118,10 +117,14 @@ async function listItems({
         })
         : [];
     const goldenItemIdSet = new Set(goldenItemIds.map((id) => String(id)));
-    const itemsWithGoldenFlag = items.map((item) => ({
-        ...item.toObject(),
-        has_golden_repairment: goldenItemIdSet.has(String(item._id)),
-    }));
+    const itemsWithGoldenFlag = items.map((item) => {
+        const itemData = item.toObject();
+        itemData.images = itemData.images.filter((image) => !image.deleted).sort((a, b) => a.order - b.order);
+        return {
+            ...itemData,
+            has_golden_repairment: goldenItemIdSet.has(String(item._id)),
+        };
+    });
     return { items: itemsWithGoldenFlag, total, page, limit };
 }
 
@@ -133,7 +136,9 @@ async function getItem(id, { includeDeleted = false } = {}) {
     });
     if (!item) throw new ApiError(404, "Item not found");
     const history = await History.find({ item_id: item._id }).sort({ date: 1 });
-    return { item, history };
+    const itemData = item.toObject();
+    itemData.images = itemData.images.filter((image) => !image.deleted).sort((a, b) => a.order - b.order);
+    return { item: itemData, history };
 }
 
 async function updateItem(id, patch, files = []) {
@@ -187,14 +192,27 @@ async function updateItem(id, patch, files = []) {
                     throw new ApiError(400, "All repairments must be delivered before the item can be delivered");
                 }
             }
+            const activeImages = item.images.filter((image) => !image.deleted).sort((a, b) => a.order - b.order);
             const removeIds = new Set((patch.removeImageIds || []).map(String));
-            removedPaths = item.images
-                .filter((image) => removeIds.has(String(image._id)))
-                .map((image) => path.resolve(image.path.replace(/^\//, "")));
-            item.images = item.images.filter(
-                (image) => !removeIds.has(String(image._id)),
-            );
-            item.images.push(...imageRecords(files));
+            for (const image of activeImages) {
+                if (removeIds.has(String(image._id))) {
+                    image.deleted = true;
+                    image.deletedAt = new Date();
+                }
+            }
+            const remainingImages = activeImages.filter((image) => !removeIds.has(String(image._id)));
+            if (Array.isArray(patch.imageOrder)) {
+                const requestedOrder = patch.imageOrder.map(String);
+                const remainingIds = new Set(remainingImages.map((image) => String(image._id)));
+                if (requestedOrder.length !== remainingImages.length || requestedOrder.some((id) => !remainingIds.has(id))) {
+                    throw new ApiError(400, "Invalid image order");
+                }
+                remainingImages.sort((a, b) => requestedOrder.indexOf(String(a._id)) - requestedOrder.indexOf(String(b._id)));
+            }
+            remainingImages.forEach((image, order) => { image.order = order; });
+            const newImages = imageRecords(files);
+            newImages.forEach((image, index) => { image.order = remainingImages.length + index; });
+            item.images.push(...newImages);
             await item.save({ session });
             await syncRepairments(item, session);
             const changes = buildFieldChanges(before, item.toObject(), [...EDITABLE, 'images', 'stored', 'location', 'delivered_to', 'deleted']);

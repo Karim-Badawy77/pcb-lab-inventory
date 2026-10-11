@@ -28,6 +28,7 @@ async function save(payload) {
                 payload.form,
                 payload.files,
                 payload.removeImageIds,
+                payload.imageOrder,
             ),
         });
         await router.push(`/items/${route.params.id}`);

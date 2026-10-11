@@ -9,6 +9,21 @@ vi.mock('@/lib/api', () => ({ apiRequest: vi.fn() }));
 describe('RepairmentDetailPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it('hides repair-only sections for golden units while retaining logs', async () => {
+    apiRequest
+      .mockResolvedValueOnce({ _id: 'repair-1', item_id: 'item-1', status: 'golden', serial_num: 'SN-1', history: [] })
+      .mockResolvedValueOnce({ history: [] });
+    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/repairments/:id', component: RepairmentDetailPage }, { path: '/items/:id', component: { template: '<p />' } }, { path: '/repairments/:id/edit', component: { template: '<p />' } }] });
+    await router.push('/repairments/repair-1');
+    await router.isReady();
+    const wrapper = mount(RepairmentDetailPage, { global: { plugins: [router] } });
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="repairment-status-badge"]').text()).toContain('Golden');
+    expect(wrapper.find('[data-testid="repairment-work-details"]').exists()).toBe(false);
+    expect(wrapper.get('[data-testid="repairment-logs"]').exists()).toBe(true);
+  });
+
   it('renders persisted update notes in the updates section', async () => {
     apiRequest
       .mockResolvedValueOnce({ _id: 'repair-1', item_id: 'item-1', status: 'repaired', updates: [{ _id: 'u1', text: 'Verified output', createdAt: '2026-09-14T10:00:00Z' }], history: [] })

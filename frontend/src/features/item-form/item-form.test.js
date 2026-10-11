@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mount } from '@vue/test-utils';
+import ImagePicker from './ImagePicker.vue';
 import { emptyItemForm, itemToForm, toItemFormData, validateItemForm } from './item-form';
 import ItemForm from './ItemForm.vue';
 
@@ -73,6 +74,50 @@ describe('item form domain', () => {
 });
 
 describe('ItemForm', () => {
+  it('shows only serial number and status for golden units on the new item page', () => {
+    const wrapper = mount(ItemForm, {
+      props: {
+        initialItem: {
+          ...emptyItemForm(),
+          repairments: [{ status: 'golden', serial_num: 'SN-1' }]
+        },
+        creationMode: true
+      }
+    });
+
+    expect(wrapper.find('[name="serial_num"]').exists()).toBe(true);
+    expect(wrapper.find('[name="repairment_status"]').exists()).toBe(true);
+    expect(wrapper.find('[placeholder="2026-09-07, 2026-09-08"]').exists()).toBe(false);
+    expect(wrapper.find('[placeholder="Name one, Name two"]').exists()).toBe(false);
+    expect(wrapper.find('[placeholder="Replaced the damaged regulator"]').exists()).toBe(false);
+    expect(wrapper.find('[placeholder="R1:2.50, C4:1.20"]').exists()).toBe(false);
+  });
+
+  it('preserves active images when mapping an item for editing', () => {
+    const form = itemToForm({ images: [
+      { _id: 'active-image', path: '/active.png' },
+      { _id: 'deleted-image', path: '/deleted.png', deleted: true }
+    ] });
+    expect(form.images.map((image) => image._id)).toEqual(['active-image']);
+  });
+
+  it('serializes the active image order for an item edit', () => {
+    const body = toItemFormData(emptyItemForm(), [], [], ['image-2', 'image-1']);
+    expect(JSON.parse(body.get('imageOrder'))).toEqual(['image-2', 'image-1']);
+  });
+
+  it('emits reordered ids and soft-delete ids from the image picker', async () => {
+    const wrapper = mount(ImagePicker, { props: { existingImages: [
+      { _id: 'image-1', path: '/one.png', originalName: 'one.png' },
+      { _id: 'image-2', path: '/two.png', originalName: 'two.png' }
+    ] } });
+    await wrapper.get('[aria-label="Move one.png later"]').trigger('click');
+    await wrapper.get('[aria-label="Soft delete one.png"]').trigger('click');
+    expect(wrapper.emitted('change').at(-1)[0]).toMatchObject({
+      imageOrder: ['image-2'], removeImageIds: ['image-1'], retainedImageCount: 1
+    });
+  });
+
   it('shows examples for item and repairment unit text fields', async () => {
     const wrapper = mount(ItemForm, { props: { initialItem: emptyItemForm(), creationMode: true } });
     const expectExamples = () => {

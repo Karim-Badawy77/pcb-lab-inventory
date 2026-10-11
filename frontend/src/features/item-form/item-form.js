@@ -31,6 +31,7 @@ export function collectFormSuggestions(items = []) {
 export function itemToForm(item = {}) {
   return {
     ...emptyItemForm(),
+    images: Array.isArray(item.images) ? item.images.filter((image) => !image.deleted).map((image) => ({ ...image })) : [],
     name: item.name || '',
     part_num: item.part_num || '',
     stored: item.stored ?? true,
@@ -96,7 +97,7 @@ function appendIfPresent(body, key, value) {
   if (normalized) body.append(key, normalized);
 }
 
-export function toItemFormData(form, files = [], removeImageIds = []) {
+export function toItemFormData(form, files = [], removeImageIds = [], imageOrder = []) {
   const body = new FormData();
   body.append('name', form.name.trim());
   body.append('part_num', form.part_num.trim());
@@ -140,6 +141,7 @@ export function toItemFormData(form, files = [], removeImageIds = []) {
     body.set('repairments', JSON.stringify(repairments));
   }
   body.append('removeImageIds', JSON.stringify(removeImageIds));
+  body.append('imageOrder', JSON.stringify(imageOrder));
   files.forEach((file) => body.append('images', file));
   return body;
 }
