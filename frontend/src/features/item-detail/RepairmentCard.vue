@@ -19,6 +19,7 @@ function statusLabel(status) {
                 <span aria-hidden="true">•</span> Unit</span
             >
             <h3>{{ repairment.serial_num || "Unit without serial number" }}</h3>
+            <small v-if="repairment.owner" class="repairment-card__owner">Owner: {{ repairment.owner }}</small>
         </div>
         <span
             class="status-badge"

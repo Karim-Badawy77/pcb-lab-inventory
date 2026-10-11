@@ -2,9 +2,16 @@ const itemService = require("../services/item.service");
 const { removeFiles } = require("../services/file.service");
 
 const JSON_FIELDS = ["location", "tags", "updates", "removeImageIds", "imageOrder", "serial_num", "repairments"];
+const ITEM_FIELDS = new Set(['name', 'part_num', 'stored', 'deleted', 'location', 'organization', 'serial_num', 'under_repairment', 'type', 'edit_count', 'total_quantity', 'available_quantity', 'description', 'tags', 'updates', 'delivered_by', 'delivered_to', 'images', 'removeImageIds', 'imageOrder', 'repairments']);
 
 function parsePayload(body) {
     const payload = { ...body };
+    const legacyOwner = payload.owner;
+    for (const field of Object.keys(payload)) if (!ITEM_FIELDS.has(field) && field !== 'owner') delete payload[field];
+    if (Array.isArray(payload.repairments) && legacyOwner !== undefined) {
+        payload.repairments = payload.repairments.map((repairment) => ({ ...repairment, owner: repairment.owner ?? legacyOwner }));
+    }
+    delete payload.owner;
     for (const field of JSON_FIELDS) {
         if (typeof payload[field] === "string")
             payload[field] = JSON.parse(payload[field]);

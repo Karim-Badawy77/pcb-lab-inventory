@@ -12,7 +12,7 @@ export function filterItems(items, criteria = {}) {
   const tag = normalizeSearch(criteria.tag);
 
   return items.filter((item) => {
-    const searchable = [item.name, item.part_num, item.description, item.owner, ...(item.tags || [])]
+    const searchable = [item.name, item.part_num, item.description, ...(item.owners || []), ...(item.tags || [])]
       .map(normalizeSearch)
       .join(' ');
     if (query && !searchable.includes(query)) return false;

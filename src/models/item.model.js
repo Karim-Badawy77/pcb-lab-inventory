@@ -29,7 +29,6 @@ const itemSchema = new mongoose.Schema(
         stored: { type: Boolean, required: true },
         deleted: { type: Boolean, default: false },
         location: { type: locationSchema },
-        owner: { type: String, trim: true },
         organization: { type: String, trim: true },
         serial_num: { type: [String], default: [] },
         under_repairment: { type: Boolean, default: false },

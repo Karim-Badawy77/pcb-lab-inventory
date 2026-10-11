@@ -184,10 +184,6 @@ onBeforeRouteLeave(
                             <dd>{{ item.organization || "—" }}</dd>
                         </div>
                         <div>
-                            <dt>Owner</dt>
-                            <dd>{{ item.owner || "—" }}</dd>
-                        </div>
-                        <div>
                             <dt>Total received</dt>
                             <dd>{{ item.total_quantity ?? 1 }}</dd>
                         </div>
@@ -200,6 +196,10 @@ onBeforeRouteLeave(
                                     1
                                 }}
                             </dd>
+                        </div>
+                        <div>
+                            <dt>Delivered units</dt>
+                            <dd>{{ (item.total_quantity ?? 1) - (item.available_quantity ?? item.total_quantity ?? 1) }}</dd>
                         </div>
                         <div>
                             <dt>Status</dt>

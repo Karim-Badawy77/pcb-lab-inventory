@@ -51,6 +51,20 @@ test('creates an item with multiple submitted repairment units', async () => {
   expect(rows.map((row) => row.serial_num)).toEqual(['SN-1', 'SN-2']);
 });
 
+test('creates only the requested golden units for a delivered item', async () => {
+  const response = await request(app).post('/api/items').send({
+    name: 'Delivered stock', stored: false, delivered_to: 'Assembly', total_quantity: 4, available_quantity: 0,
+    repairments: [
+      { status: 'golden', serial_num: 'G-1' },
+      { status: 'golden', serial_num: 'G-2' },
+    ],
+  });
+  expect(response.status).toBe(201);
+  const rows = await Repairment.find({ item_id: response.body.data._id, deleted: false });
+  expect(rows).toHaveLength(2);
+  expect(rows.map((row) => row.serial_num).sort()).toEqual(['G-1', 'G-2']);
+});
+
 test('repairment updates increment item count and record linked field history', async () => {
   const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W', section: 'S', pack: 'P' } });
   const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing', spare_part: [{ part: 'R1', price: 2 }] });
@@ -97,6 +111,15 @@ test('editing a repairment serial number persists it and records the change', as
   expect(updated.body.data.serial_num).toBe('SN-NEW');
   expect((await request(app).get(`/api/repairments/${created.body.data._id}`)).body.data.serial_num).toBe('SN-NEW');
   expect(await History.exists({ item_id: item._id, repairment_id: created.body.data._id, 'fields.field_name': 'serial_num', 'fields.to': 'SN-NEW' })).toBeTruthy();
+});
+
+test('creates and edits a per-unit owner with repairment history', async () => {
+  const item = await createItem();
+  const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing', owner: 'Karim' });
+  expect(created.body.data.owner).toBe('Karim');
+  const updated = await request(app).patch(`/api/repairments/${created.body.data._id}`).send({ owner: 'Mona' });
+  expect(updated.body.data.owner).toBe('Mona');
+  expect(await History.exists({ repairment_id: created.body.data._id, 'fields.field_name': 'owner', 'fields.to': 'Mona' })).toBeTruthy();
 });
 
 test('allows delivery from any repairment state and keeps the parent under repair until all units are delivered', async () => {

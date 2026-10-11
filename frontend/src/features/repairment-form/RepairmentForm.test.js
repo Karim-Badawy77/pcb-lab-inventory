@@ -32,6 +32,14 @@ describe('RepairmentForm', () => {
     expect(wrapper.emitted('submit')[0][0].serial_num).toBe('SN-NEW');
   });
 
+  it('shows and submits the repairment owner', async () => {
+    const wrapper = mount(RepairmentForm, { props: { initialRepairment: { status: 'repairing', owner: 'Karim' } } });
+    expect(wrapper.get('[name="owner"]').element.value).toBe('Karim');
+    await wrapper.get('[name="owner"]').setValue('Mona');
+    await wrapper.get('form').trigger('submit');
+    expect(wrapper.emitted('submit')[0][0].owner).toBe('Mona');
+  });
+
   it('offers golden as an add and edit status and submits it', async () => {
     const wrapper = mount(RepairmentForm, { props: { initialRepairment: { status: 'repairing' } } });
     expect(wrapper.find('[name="status"] option[value="golden"]').exists()).toBe(true);

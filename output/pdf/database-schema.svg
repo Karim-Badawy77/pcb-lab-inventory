@@ -21,7 +21,7 @@
 <text x="100" y="260" class="field"><tspan font-weight="bold">_id</tspan> : ObjectId</text>
 <text x="100" y="292" class="field">name, part_num, type</text>
 <text x="100" y="324" class="field">stored, deleted, location</text>
-<text x="100" y="356" class="field">owner, organization, serial_num</text>
+<text x="100" y="356" class="field">organization, serial_num</text>
 <text x="100" y="388" class="field">under_repairment</text>
 <text x="100" y="420" class="field">total_quantity, available_quantity</text>
 <text x="100" y="452" class="field">description, tags, edit_count</text>
@@ -32,17 +32,18 @@
 <rect x="337" y="545" width="215" height="76" class="embed"/>
 <text x="355" y="574" class="rel">Embedded object</text><text x="355" y="599" class="muted">location (no _id)</text>
 <!-- repairments -->
-<rect x="830" y="170" width="500" height="350" class="box"/>
+<rect x="830" y="170" width="500" height="380" class="box"/>
 <path d="M844 170 H1316 Q1330 170 1330 184 V225 H830 V184 Q830 170 844 170Z" class="bar"/>
 <text x="860" y="207" class="head">repairments</text><text x="1295" y="205" class="meta" text-anchor="end">collection</text>
 <text x="860" y="260" class="field"><tspan font-weight="bold">_id</tspan> : ObjectId</text>
 <text x="860" y="292" class="field"><tspan font-weight="bold">item_id</tspan> : ObjectId → items._id</text>
 <text x="860" y="324" class="field">serial_num, status, deleted</text>
-<text x="860" y="356" class="field">delivered_to, delivered_by, delivered_at</text>
-<text x="860" y="388" class="field">field_test_date[], repairer[]</text>
-<text x="860" y="420" class="field">createdAt, updatedAt</text>
-<rect x="860" y="444" width="430" height="54" class="embed"/>
-<text x="880" y="477" class="rel">Embedded: spare_part[] and updates[]</text>
+<text x="860" y="356" class="field">owner</text>
+<text x="860" y="388" class="field">delivered_to, delivered_by, delivered_at</text>
+<text x="860" y="420" class="field">field_test_date[], repairer[]</text>
+<text x="860" y="452" class="field">createdAt, updatedAt</text>
+<rect x="860" y="476" width="430" height="54" class="embed"/>
+<text x="880" y="509" class="rel">Embedded: spare_part[] and updates[]</text>
 <!-- history -->
 <rect x="830" y="600" width="500" height="235" class="box"/>
 <path d="M844 600 H1316 Q1330 600 1330 614 V655 H830 V614 Q830 600 844 600Z" class="bar"/>

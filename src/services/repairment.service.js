@@ -5,7 +5,7 @@ const History = require('../models/history.model');
 const ApiError = require('../utils/api-error');
 const { buildFieldChanges, plain } = require('./history.service');
 
-const EDITABLE = ['serial_num', 'status', 'field_test_date', 'repairer', 'spare_part', 'updates', 'delivered_to', 'delivered_by', 'delivered_at'];
+const EDITABLE = ['serial_num', 'owner', 'status', 'field_test_date', 'repairer', 'spare_part', 'updates', 'delivered_to', 'delivered_by', 'delivered_at'];
 function assertId(id) { if (!mongoose.isObjectIdOrHexString(id)) throw new ApiError(400, 'Invalid repairment id'); }
 function assertItemId(id) { if (!mongoose.isObjectIdOrHexString(id)) throw new ApiError(400, 'Invalid item id'); }
 

@@ -44,7 +44,7 @@ onMounted(loadItems);
     </header>
 
     <section class="browse-tools" aria-label="Inventory search and filters">
-      <label class="search-box"><span aria-hidden="true">⌕</span><input v-model="criteria.query" aria-label="Search inventory" placeholder="Search name, part number, owner, tag…"></label>
+      <label class="search-box"><span aria-hidden="true">⌕</span><input v-model="criteria.query" aria-label="Search inventory" placeholder="Search name, part number, unit owner, tag…"></label>
       <div class="quick-filters" aria-label="Status filter">
         <button v-for="status in ['all', 'stored', 'delivered', 'repairing']" :key="status" type="button" :data-status="status" :class="{ active: criteria.status === status }" @click="criteria.status = status">{{ status }}</button>
         <button type="button" :class="{ active: filtersActive }" @click="filtersOpen = !filtersOpen">Filters <span aria-hidden="true">{{ filtersOpen ? '−' : '+' }}</span></button>

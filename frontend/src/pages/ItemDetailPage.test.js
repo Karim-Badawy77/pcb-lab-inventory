@@ -10,7 +10,7 @@ vi.mock('@/lib/api', () => ({ apiRequest: vi.fn() }));
 
 const detail = {
   _id: 'item-1', name: 'Motor Controller', part_num: 'PCB-042', stored: true,
-  location: { warehouse: 'W1', section: 'S2', pack: 'P3' }, category: 'Control', owner: 'Karim',
+  location: { warehouse: 'W1', section: 'S2', pack: 'P3' }, category: 'Control',
   description: 'Three-phase controller', tags: ['motor'], updates: [{ _id: 'u1', text: 'Checked', createdAt: '2026-08-30T10:00:00Z' }],
   images: [
     { _id: 'img-1', path: '/uploads/front.webp', originalName: 'front.webp' },
@@ -57,6 +57,7 @@ describe('ItemDetailPage', () => {
 
     expect(wrapper.text()).toContain('Motor Controller');
     expect(wrapper.text()).toContain('W1 / S2 / P3');
+    expect(wrapper.text()).toContain('Delivered units');
     expect(wrapper.get('.gallery-main img').attributes('src')).toBe('/uploads/front.webp');
     expect(wrapper.text()).toContain('Added to inventory');
 

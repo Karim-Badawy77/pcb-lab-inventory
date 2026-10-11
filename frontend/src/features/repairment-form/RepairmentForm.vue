@@ -11,6 +11,7 @@ const emit = defineEmits(["submit", "cancel"]);
 const form = reactive({
     status: props.initialRepairment.status || "repairing",
     serial_num: props.initialRepairment.serial_num || "",
+    owner: props.initialRepairment.owner || "",
     delivered_to: props.initialRepairment.delivered_to || "",
     delivered_by: props.initialRepairment.delivered_by || "",
     field_test_date: (props.initialRepairment.field_test_date || []).join(", "),
@@ -34,6 +35,7 @@ function submit() {
     emit("submit", {
         status: form.status,
         serial_num: form.serial_num.trim(),
+        owner: form.owner.trim() || undefined,
         delivered_to: form.delivered_to.trim() || undefined,
         delivered_by: form.delivered_by.trim() || undefined,
         field_test_date: form.field_test_date
@@ -84,6 +86,7 @@ function submit() {
                     </select></label
                 >
             </div>
+            <label class="field"><span>Owner</span><AutocompleteField v-model="form.owner" name="owner" placeholder="Unit owner" :suggestions="suggestions.owner || []" /></label>
             <div v-if="form.status === 'delivered'" class="field-grid">
                 <label class="field"
                     ><span>Delivered to *</span

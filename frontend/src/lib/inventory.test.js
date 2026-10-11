@@ -4,12 +4,12 @@ import { filterItems, formatLocation, primaryImage, uniqueFilterOptions } from '
 
 const items = [
   {
-    _id: '1', name: 'Motor Controller', part_num: 'PCB-042', description: 'Three phase', owner: 'Karim',
+    _id: '1', name: 'Motor Controller', part_num: 'PCB-042', description: 'Three phase', owners: ['Karim'],
     organization: 'Control', tags: ['motor'], stored: true,
     location: { warehouse: 'W1', section: 'S2', pack: 'P3' }, images: [{ path: '/uploads/a.webp' }]
   },
   {
-    _id: '2', name: 'Sensor Board', part_num: 'SNS-018', description: '', owner: 'Mona',
+    _id: '2', name: 'Sensor Board', part_num: 'SNS-018', description: '', owners: ['Mona'],
     organization: 'Sensor', tags: ['analog'], stored: false, delivered_to: 'Assembly'
   }
 ];

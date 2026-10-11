@@ -5,22 +5,24 @@ export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 export function emptyItemForm() {
   return {
     name: '', part_num: '', stored: true, under_repairment: false, organization: '', type: '', total_quantity: 1, available_quantity: 1,
-    serial_num: [], serialNumText: '', repairments: [],
+    serial_num: [], serialNumText: '', repairments: [], goldenIncluded: false, goldenQuantity: 1, goldenSerialNumText: '',
     location: { warehouse: '', section: '', pack: '' },
-    delivered_to: '', delivered_by: '', owner: '', description: '',
+    delivered_to: '', delivered_by: '', description: '',
     tagsText: '', updates: [], newUpdateText: ''
   };
 }
 
 export function collectFormSuggestions(items = []) {
-  const fields = ['name', 'part_num', 'organization', 'owner', 'delivered_to', 'delivered_by', 'warehouse', 'section', 'pack', 'serial_num', 'repairer', 'spare_part'];
+  const fields = ['name', 'part_num', 'organization', 'delivered_to', 'delivered_by', 'warehouse', 'section', 'pack', 'serial_num', 'repairer', 'spare_part', 'owner'];
   const values = Object.fromEntries(fields.map((field) => [field, new Set()]));
   for (const item of items) {
-    for (const field of fields.slice(0, 6)) if (item[field]) values[field].add(String(item[field]).trim());
-    for (const field of fields.slice(6, 9)) if (item.location?.[field]) values[field].add(String(item.location[field]).trim());
+    for (const field of fields.slice(0, 5)) if (item[field]) values[field].add(String(item[field]).trim());
+    for (const field of fields.slice(5, 8)) if (item.location?.[field]) values[field].add(String(item.location[field]).trim());
+    for (const owner of item.owners || []) if (owner) values.owner.add(String(owner).trim());
     for (const serial of item.serial_num || []) if (serial) values.serial_num.add(String(serial).trim());
     for (const repairment of item.repairments || []) {
       if (repairment.serial_num) values.serial_num.add(String(repairment.serial_num).trim());
+      if (repairment.owner) values.owner.add(String(repairment.owner).trim());
       for (const repairer of repairment.repairer || []) if (repairer) values.repairer.add(String(repairer).trim());
       for (const part of repairment.spare_part || []) if (part.part) values.spare_part.add(`${part.part}:${part.price}`);
     }
@@ -43,6 +45,9 @@ export function itemToForm(item = {}) {
     serial_num: Array.isArray(item.serial_num) ? [...item.serial_num] : [],
     serialNumText: Array.isArray(item.serial_num) ? item.serial_num.join(', ') : '',
     repairments: Array.isArray(item.repairments) ? item.repairments.map((repairment) => ({ ...repairment })) : [],
+    goldenIncluded: false,
+    goldenQuantity: 1,
+    goldenSerialNumText: '',
     location: {
       warehouse: item.location?.warehouse || '',
       section: item.location?.section || '',
@@ -50,7 +55,6 @@ export function itemToForm(item = {}) {
     },
     delivered_to: item.delivered_to || '',
     delivered_by: item.delivered_by || '',
-    owner: item.owner || '',
     description: item.description || '',
     tagsText: Array.isArray(item.tags) ? item.tags.join(', ') : (item.tagsText || ''),
     updates: (item.updates || []).map((update) => ({ ...update })),
@@ -66,8 +70,15 @@ export function validateItemForm(form, files = [], retainedImageCount = 0, valid
   const errors = {};
   if (!form.name?.trim()) errors.name = 'Name is required';
   if (!Number.isInteger(Number(form.total_quantity)) || Number(form.total_quantity) < 1) errors.total_quantity = 'Total quantity must be a positive whole number';
+  if (validateRepairments && form.goldenIncluded) {
+    const goldenQuantity = Number(form.goldenQuantity);
+    if (!Number.isInteger(goldenQuantity) || goldenQuantity < 1) errors.goldenQuantity = 'Golden quantity must be a positive whole number';
+    else if (goldenQuantity > Number(form.total_quantity)) errors.goldenQuantity = 'Golden quantity cannot exceed total quantity';
+    const goldenSerials = String(form.goldenSerialNumText || '').split(',').map((serial) => serial.trim()).filter(Boolean);
+    if (goldenSerials.length > goldenQuantity) errors.goldenSerialNumText = 'Enter no more serial numbers than golden units';
+  }
   if (form.under_repairment && validateRepairments) {
-    if ((form.repairments || []).length !== Number(form.total_quantity)) errors.repairments = 'Add one repairment record per unit';
+    if ((form.repairments || []).length + (form.goldenIncluded ? Number(form.goldenQuantity) || 0 : 0) !== Number(form.total_quantity)) errors.repairments = 'Add one record for each non-golden unit';
     (form.repairments || []).forEach((unit, index) => {
       if (!['golden', 'repaired', 'unrepairable', 'repairing', 'awaiting_spare_part'].includes(unit.status)) errors[`repairments.${index}.status`] = 'Select a unit status';
     });
@@ -113,7 +124,6 @@ export function toItemFormData(form, files = [], removeImageIds = [], imageOrder
     ? repairmentSerials
     : enteredSerials.filter(Boolean);
   body.append('serial_num', JSON.stringify(serials));
-  appendIfPresent(body, 'owner', form.owner);
   appendIfPresent(body, 'organization', form.organization);
   appendIfPresent(body, 'type', form.type);
   appendIfPresent(body, 'description', form.description);
@@ -129,6 +139,7 @@ export function toItemFormData(form, files = [], removeImageIds = [], imageOrder
   if (form.repairments?.length) {
     const repairments = (form.repairments || []).map((unit, index) => ({
       serial_num: String(unit.serial_num || '').trim() || enteredSerials[index] || undefined,
+      owner: String(unit.owner || '').trim() || undefined,
       status: unit.status,
       field_test_date: String(unit.field_test_date_text || '').split(',').map((value) => value.trim()).filter(Boolean),
       repairer: String(unit.repairer_text || '').split(',').map((value) => value.trim()).filter(Boolean),

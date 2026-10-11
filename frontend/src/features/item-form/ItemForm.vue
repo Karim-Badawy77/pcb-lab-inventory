@@ -45,16 +45,29 @@ function setUnderRepair() {
     form.under_repairment = true;
     form.stored = true;
     form.location = { warehouse: "lab", section: "", pack: "" };
-    while (form.repairments.length < Number(form.total_quantity || 1))
+    const unitCount = Math.max(0, Number(form.total_quantity || 1) - goldenCount());
+    while (form.repairments.length < unitCount)
         form.repairments.push({
             status: "repairing",
             serial_num: "",
             field_test_date_text: "",
+            owner: "",
             repairer_text: "",
             spare_part_text: "",
             update_text: "",
         });
-    form.repairments.splice(Number(form.total_quantity || 1));
+    form.repairments.splice(unitCount);
+}
+function goldenCount() {
+    return props.creationMode && form.goldenIncluded ? Math.max(0, Number(form.goldenQuantity) || 0) : 0;
+}
+function syncUnderRepairUnits() {
+    if (!form.under_repairment) return;
+    const unitCount = Math.max(0, Number(form.total_quantity || 1) - goldenCount());
+    while (form.repairments.length < unitCount) form.repairments.push({
+        status: "repairing", serial_num: "", owner: "", field_test_date_text: "", repairer_text: "", spare_part_text: "", update_text: "",
+    });
+    form.repairments.splice(unitCount);
 }
 function setStoredStatus() {
     form.under_repairment = false;
@@ -64,6 +77,12 @@ function setQuantity(value) {
     form.total_quantity = Math.max(1, Number(value) || 1);
     form.available_quantity = Math.min(form.available_quantity, form.total_quantity);
     if (form.under_repairment) setUnderRepair();
+}
+
+function toggleGoldenIncluded(event) {
+    form.goldenIncluded = event.target.checked;
+    if (form.goldenIncluded && (!Number(form.goldenQuantity) || Number(form.goldenQuantity) < 1)) form.goldenQuantity = 1;
+    syncUnderRepairUnits();
 }
 
 function onImagesChange(payload) {
@@ -82,8 +101,14 @@ function submit() {
         props.creationMode,
     );
     if (Object.keys(errors.value).length) return;
+    const submittedForm = itemToForm(form);
+    if (props.creationMode && form.goldenIncluded) {
+        const serials = String(form.goldenSerialNumText || "").split(",").map((serial) => serial.trim()).filter(Boolean);
+        const goldenUnits = Array.from({ length: Number(form.goldenQuantity) }, (_, index) => ({ status: "golden", serial_num: serials[index] || "" }));
+        submittedForm.repairments = [...goldenUnits, ...submittedForm.repairments];
+    }
     emit("submit", {
-        form: itemToForm(form),
+        form: submittedForm,
         files: [...files.value],
         removeImageIds: [...removeImageIds.value],
         imageOrder: [...imageOrder.value],
@@ -122,7 +147,7 @@ function submit() {
                         errors.part_num
                     }}</small></label
                 >
-                <label v-if="!form.under_repairment" class="field"
+                <label v-if="!creationMode && !form.under_repairment" class="field"
                     ><span>Serial numbers <em>comma separated, optional</em></span
                     ><input v-model="form.serialNumText" name="serial_num" placeholder="SN-2026-001, SN-2026-002"
                 /></label>
@@ -237,21 +262,36 @@ function submit() {
                     :key="index"
                     :unit="unit"
                     :index="index"
+                    :suggestions="suggestions.owner || []"
             /></template>
+        </section>
+
+        <section v-if="creationMode" class="form-section">
+            <span class="eyebrow">Optional unit records</span>
+            <h2>Golden included</h2>
+            <label class="checkbox-field">
+                <input name="golden_included" type="checkbox" :checked="form.goldenIncluded" @change="toggleGoldenIncluded">
+                <span>Include golden units with this item</span>
+            </label>
+            <div v-if="form.goldenIncluded" class="field-grid">
+                <label class="field">
+                    <span>Golden quantity *</span>
+                    <input v-model.number="form.goldenQuantity" name="golden_quantity" type="number" min="1" :max="form.total_quantity" @input="syncUnderRepairUnits">
+                    <small v-if="errors.goldenQuantity">{{ errors.goldenQuantity }}</small>
+                </label>
+                <label class="field">
+                    <span>Golden serial numbers <em>comma separated, optional</em></span>
+                    <input v-model="form.goldenSerialNumText" name="serial_num" placeholder="SN-2026-001, SN-2026-002">
+                    <small v-if="errors.goldenSerialNumText">{{ errors.goldenSerialNumText }}</small>
+                </label>
+            </div>
+            <small v-if="errors.repairments" class="field-error">{{ errors.repairments }}</small>
         </section>
 
         <section class="form-section">
             <span class="eyebrow">03 · Classification</span>
             <h2>Make it easy to find.</h2>
-            <div class="field-grid">
-                <label class="field"
-                    ><span>Organization</span
-                    ><AutocompleteField v-model="form.organization" name="organization" placeholder="Electronics lab" :suggestions="suggestions.organization || []"
-                /></label>
-                <label class="field"
-                ><span>Owner</span><AutocompleteField v-model="form.owner" name="owner" placeholder="Maintenance team" :suggestions="suggestions.owner || []"
-                /></label>
-            </div>
+            <label class="field"><span>Organization</span><AutocompleteField v-model="form.organization" name="organization" placeholder="Electronics lab" :suggestions="suggestions.organization || []" /></label>
             <label class="field"
                 ><span>Tags <em>comma separated</em></span
                 ><input
@@ -294,7 +334,7 @@ function submit() {
             @change="onImagesChange"
         />
 
-        <template v-for="field in ['name', 'part_num', 'warehouse', 'section', 'pack', 'delivered_to', 'delivered_by', 'organization', 'owner']" :key="field">
+        <template v-for="field in ['name', 'part_num', 'warehouse', 'section', 'pack', 'delivered_to', 'delivered_by', 'organization']" :key="field">
             <datalist :id="`item-${field.replaceAll('_', '-')}-options`"><option v-for="value in suggestions[field] || []" :key="value" :value="value" :label="value">{{ value }}</option></datalist>
         </template>
 

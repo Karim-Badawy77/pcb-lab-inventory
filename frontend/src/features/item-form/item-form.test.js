@@ -22,6 +22,27 @@ describe('item form domain', () => {
     expect(JSON.parse(toItemFormData(form).get('repairments'))[0]).toMatchObject({ status: 'golden', serial_num: 'SN-1' });
   });
 
+  it('serializes a partial set of golden units for a delivered item', () => {
+    const form = {
+      ...emptyItemForm(), name: 'Delivered stock', stored: false, delivered_to: 'Assembly', total_quantity: 4,
+      available_quantity: 0, repairments: [
+        { status: 'golden', serial_num: 'G-1' },
+        { status: 'golden', serial_num: 'G-2' }
+      ]
+    };
+    expect(validateItemForm(form)).toEqual({});
+    expect(JSON.parse(toItemFormData(form).get('repairments')).map(({ status, serial_num }) => [status, serial_num]))
+      .toEqual([['golden', 'G-1'], ['golden', 'G-2']]);
+  });
+
+  it('rejects a golden quantity greater than total quantity', () => {
+    const errors = validateItemForm({
+      ...emptyItemForm(), stored: false, delivered_to: 'Assembly', total_quantity: 2,
+      goldenIncluded: true, goldenQuantity: 3
+    });
+    expect(errors.goldenQuantity).toContain('cannot exceed');
+  });
+
   it('uses entered item serial numbers for generated unit repairments when row serials are blank', () => {
     const form = {
       ...emptyItemForm(), name: 'Stock board', total_quantity: 2,
@@ -74,6 +95,22 @@ describe('item form domain', () => {
 });
 
 describe('ItemForm', () => {
+  it('shows golden controls independently of item status and submits the chosen golden units', async () => {
+    const wrapper = mount(ItemForm, { props: { initialItem: emptyItemForm(), creationMode: true } });
+    await wrapper.get('[value="delivered"]').setValue();
+    await wrapper.get('[name="total_quantity"]').setValue('3');
+    expect(wrapper.find('[name="golden_included"]').exists()).toBe(true);
+    await wrapper.get('[name="golden_included"]').setValue(true);
+    await wrapper.get('[name="golden_quantity"]').setValue('2');
+    await wrapper.get('[name="serial_num"]').setValue('G-1, G-2');
+    await wrapper.get('[name="name"]').setValue('Delivered stock');
+    await wrapper.get('[name="delivered_to"]').setValue('Assembly');
+    await wrapper.get('form').trigger('submit');
+    expect(wrapper.emitted('submit')[0][0].form.repairments).toMatchObject([
+      { status: 'golden', serial_num: 'G-1' }, { status: 'golden', serial_num: 'G-2' }
+    ]);
+  });
+
   it('does not add golden units when a new item is stored', async () => {
     const wrapper = mount(ItemForm, { props: { initialItem: emptyItemForm(), creationMode: true } });
     await wrapper.get('[value="stored"]').setValue();

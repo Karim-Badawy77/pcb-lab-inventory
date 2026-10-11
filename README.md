@@ -23,13 +23,15 @@ For frontend development with Vite’s proxy, run `npm run dev` and open `http:/
 
 ## Inventory features
 
-Items support names, optional part numbers, total quantity received by the lab, currently available quantity, owner, organization, type, tags, descriptions, update notes, images, soft deletion, and transaction history. Delivering an item sets its available quantity to zero.
+Items support names, optional part numbers, total quantity received by the lab, currently available quantity, organization, type, tags, descriptions, update notes, images, soft deletion, and transaction history. Each unit's repairment record stores that unit's owner. Delivering an item sets its available quantity to zero.
 
 For stored items, warehouse is required while section and pack are optional. For delivered items, `delivered_to` is required. Part number and other metadata are optional. Images accept JPEG, PNG, and WebP files, with a maximum of 10 images and 5 MB per image.
 
 Each item unit has a status record. Stored units that are functional and have never been repaired use the `golden` status; these are excluded from repairment counts and shown in a separate golden-unit count. Repairment records use `repairing`, `awaiting_spare_part`, `repaired`, or `unrepairable`. Under-repair items remain stored in the lab. Delivering an individual unit reduces the parent item's available quantity by one.
 
 For existing databases, run `npm run migrate:quantities` before deploying the new application. The migration copies each legacy `quantity` value into `total_quantity` and `available_quantity`, converts legacy functional units to golden records, and removes the item-level `functional` field. Keep this and future legacy-data migration scripts in the repository so they remain available for production deployments and recovery; see [AGENTS.md](AGENTS.md) for migration requirements.
+
+Before deploying the per-unit owner change to an existing database, run `npm run migrate:repairment-owners`. It copies each legacy item owner to that item's repairment records only where a unit owner is empty, so reruns preserve explicit per-unit owners. Run it before deploying the application version that removes item-level owner support.
 
 ## Repairment features
 

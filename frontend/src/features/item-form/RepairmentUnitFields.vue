@@ -1,5 +1,6 @@
 <script setup>
-defineProps({ unit: { type: Object, required: true }, index: { type: Number, required: true } });
+defineProps({ unit: { type: Object, required: true }, index: { type: Number, required: true }, suggestions: { type: Array, default: () => [] } });
+import AutocompleteField from '@/components/AutocompleteField.vue';
 const statuses = [
   ['golden', 'Golden (functional, never repaired)'],
   ['repairing', 'Repairing'], ['awaiting_spare_part', 'Awaiting spare part'],
@@ -12,6 +13,7 @@ const statuses = [
     <div class="unit-heading"><span class="eyebrow">Unit {{ index + 1 }}</span><h3>Repairment record</h3></div>
     <div class="field-grid">
       <label class="field"><span>Serial number</span><input v-model="unit.serial_num" name="serial_num" placeholder="SN-2026-001"></label>
+      <label class="field"><span>Owner</span><AutocompleteField v-model="unit.owner" name="owner" placeholder="Unit owner" :suggestions="suggestions" /></label>
       <label class="field"><span>Status *</span><select v-model="unit.status" name="repairment_status"><option value="">Select status</option><option v-for="[value, label] in statuses" :key="value" :value="value">{{ label }}</option></select></label>
     </div>
     <template v-if="unit.status !== 'golden'">

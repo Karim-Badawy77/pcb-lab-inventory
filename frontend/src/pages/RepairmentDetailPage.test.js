@@ -11,7 +11,7 @@ describe('RepairmentDetailPage', () => {
 
   it('hides repair-only sections for golden units while retaining logs', async () => {
     apiRequest
-      .mockResolvedValueOnce({ _id: 'repair-1', item_id: 'item-1', status: 'golden', serial_num: 'SN-1', history: [] })
+      .mockResolvedValueOnce({ _id: 'repair-1', item_id: 'item-1', status: 'golden', serial_num: 'SN-1', owner: 'Karim', history: [] })
       .mockResolvedValueOnce({ history: [] });
     const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/repairments/:id', component: RepairmentDetailPage }, { path: '/items/:id', component: { template: '<p />' } }, { path: '/repairments/:id/edit', component: { template: '<p />' } }] });
     await router.push('/repairments/repair-1');
@@ -20,6 +20,7 @@ describe('RepairmentDetailPage', () => {
     await flushPromises();
 
     expect(wrapper.get('[data-testid="repairment-status-badge"]').text()).toContain('Golden');
+    expect(wrapper.get('[data-testid="repairment-owner"]').text()).toContain('Karim');
     expect(wrapper.find('[data-testid="repairment-work-details"]').exists()).toBe(false);
     expect(wrapper.get('[data-testid="repairment-logs"]').exists()).toBe(true);
   });

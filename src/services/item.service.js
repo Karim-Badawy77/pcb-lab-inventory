@@ -15,7 +15,6 @@ const Repairment = require('../models/repairment.model');
 const EDITABLE = [
     "name",
     "part_num",
-    "owner",
     "organization",
     "serial_num",
     "under_repairment",
@@ -42,8 +41,9 @@ function imageRecords(files) {
 }
 
 async function createItem(payload, files = []) {
-    const state = normalizeInventoryState(payload);
-    const totalQuantity = payload.total_quantity ?? 1;
+    const { owner: legacyOwner, ...itemPayload } = payload;
+    const state = normalizeInventoryState(itemPayload);
+    const totalQuantity = itemPayload.total_quantity ?? 1;
     const availableQuantity = state.stored
         ? (payload.available_quantity ?? totalQuantity)
         : 0;
@@ -51,19 +51,22 @@ async function createItem(payload, files = []) {
     try {
         await mongoose.connection.transaction(async (session) => {
             created = await new Item({
-                ...payload,
+                ...itemPayload,
                 total_quantity: totalQuantity,
                 available_quantity: availableQuantity,
                 ...state,
                 images: imageRecords(files),
             }).save({ session });
             if (Array.isArray(payload.repairments)) {
-                if (payload.repairments.length !== created.total_quantity) throw new ApiError(400, 'One unit record is required per total quantity');
+                if (payload.repairments.length > created.total_quantity || (created.under_repairment && payload.repairments.length !== created.total_quantity)) {
+                    throw new ApiError(400, 'Repairment records must match the item quantity');
+                }
                 for (const [index, repairment] of payload.repairments.entries()) {
                     await new Repairment({
                         ...repairment,
+                        ...(repairment.owner === undefined && legacyOwner !== undefined ? { owner: legacyOwner } : {}),
                         item_id: created._id,
-                        ...(created.serial_num[index] ? { serial_num: created.serial_num[index] } : {}),
+                        ...(!repairment.serial_num && created.serial_num[index] ? { serial_num: created.serial_num[index] } : {}),
                     }).save({ session });
                 }
             } else {
@@ -117,11 +120,19 @@ async function listItems({
         })
         : [];
     const goldenItemIdSet = new Set(goldenItemIds.map((id) => String(id)));
+    const itemRepairments = items.length ? await Repairment.find({ item_id: { $in: items.map((item) => item._id) }, deleted: false }).select('item_id owner').lean() : [];
+    const ownersByItem = new Map();
+    for (const repairment of itemRepairments) {
+        const key = String(repairment.item_id);
+        if (!ownersByItem.has(key)) ownersByItem.set(key, []);
+        if (repairment.owner) ownersByItem.get(key).push(repairment.owner);
+    }
     const itemsWithGoldenFlag = items.map((item) => {
         const itemData = item.toObject();
         itemData.images = itemData.images.filter((image) => !image.deleted).sort((a, b) => a.order - b.order);
         return {
             ...itemData,
+            owners: [...new Set(ownersByItem.get(String(item._id)) || [])],
             has_golden_repairment: goldenItemIdSet.has(String(item._id)),
         };
     });

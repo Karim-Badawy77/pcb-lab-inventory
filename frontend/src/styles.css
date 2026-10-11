@@ -134,6 +134,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .field { margin-top: .85rem; display: grid; gap: .35rem; color: var(--ink); font-size: .78rem; font-weight: 800; }
 .field span { display: flex; justify-content: space-between; }
 .field em { color: var(--muted); font-style: normal; font-weight: 500; }
+.checkbox-field { display: flex; align-items: center; gap: .65rem; margin: .5rem 0 1rem; color: var(--ink); font-weight: 700; }
+.checkbox-field input { width: 1.15rem; height: 1.15rem; accent-color: var(--green); }
 .field input, .field textarea { width: 100%; min-height: 3rem; padding: .7rem .8rem; border: 1px solid var(--line); border-radius: .6rem; color: var(--ink); background: white; }
 .field textarea { resize: vertical; }
 .input-with-action { display: flex; gap: .5rem; align-items: stretch; }

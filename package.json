@@ -9,6 +9,7 @@
     "scripts": {
         "start": "npm run build && node scripts/start.js",
         "migrate:quantities": "node scripts/migrate-quantities.js",
+        "migrate:repairment-owners": "node scripts/migrate-repairment-owners.js",
         "dev": "concurrently \"node --watch src/server.js\" \"vite --config frontend/vite.config.js --host 0.0.0.0\"",
         "build": "vite build --config frontend/vite.config.js",
         "test:frontend": "vitest run --config frontend/vite.config.js",

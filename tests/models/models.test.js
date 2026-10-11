@@ -57,6 +57,7 @@ test('repairment validates status and structured spare parts', async () => {
 });
 
 test('golden is a valid repairment status', async () => {
-  const repairment = new Repairment({ item_id: new mongoose.Types.ObjectId(), status: 'golden' });
+  const repairment = new Repairment({ item_id: new mongoose.Types.ObjectId(), status: 'golden', owner: 'Mona' });
   await expect(repairment.validate()).resolves.toBeUndefined();
+  expect(repairment.owner).toBe('Mona');
 });
