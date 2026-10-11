@@ -23,6 +23,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
+start http://localhost:3000
 echo.
 echo Starting app...
 echo.
