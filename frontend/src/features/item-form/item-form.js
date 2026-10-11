@@ -104,9 +104,13 @@ export function toItemFormData(form, files = [], removeImageIds = []) {
   body.append('under_repairment', String(Boolean(form.under_repairment)));
   body.append('total_quantity', String(Number(form.total_quantity) || 1));
   body.append('available_quantity', String(Number(form.available_quantity) || 0));
+  const enteredSerials = String(form.serialNumText ?? '').split(',').map((serial) => serial.trim());
+  const repairmentSerials = (form.repairments || []).map((unit, index) =>
+    String(unit.serial_num || '').trim() || enteredSerials[index] || ''
+  );
   const serials = (form.repairments || []).length
-    ? (form.repairments || []).map((unit) => String(unit.serial_num || '').trim())
-    : String(form.serialNumText ?? '').split(',').map((serial) => serial.trim()).filter(Boolean);
+    ? repairmentSerials
+    : enteredSerials.filter(Boolean);
   body.append('serial_num', JSON.stringify(serials));
   appendIfPresent(body, 'owner', form.owner);
   appendIfPresent(body, 'organization', form.organization);
@@ -122,8 +126,8 @@ export function toItemFormData(form, files = [], removeImageIds = []) {
   body.append('tags', JSON.stringify(parseTags(form.tagsText)));
   body.append('updates', JSON.stringify(updates));
   if (form.repairments?.length) {
-    const repairments = (form.repairments || []).map((unit) => ({
-      serial_num: String(unit.serial_num || '').trim() || undefined,
+    const repairments = (form.repairments || []).map((unit, index) => ({
+      serial_num: String(unit.serial_num || '').trim() || enteredSerials[index] || undefined,
       status: unit.status,
       field_test_date: String(unit.field_test_date_text || '').split(',').map((value) => value.trim()).filter(Boolean),
       repairer: String(unit.repairer_text || '').split(',').map((value) => value.trim()).filter(Boolean),

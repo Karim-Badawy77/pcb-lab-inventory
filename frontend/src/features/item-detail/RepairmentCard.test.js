@@ -22,4 +22,14 @@ describe('RepairmentCard', () => {
 
     expect(wrapper.get('[data-testid="unit-status-badge"]').text()).toBe('Awaiting Spare Part');
   });
+
+  it('highlights golden units with a golden status badge', () => {
+    const wrapper = mount(RepairmentCard, {
+      props: { repairment: { _id: 'repair-1', serial_num: 'SN-42', status: 'golden' } },
+      global: { stubs: { RouterLink: { template: '<a><slot /></a>', props: ['to'] } } }
+    });
+
+    expect(wrapper.get('[data-testid="unit-status-badge"]').classes()).toContain('status-badge--golden');
+    expect(wrapper.get('[data-testid="unit-status-badge"]').text()).toBe('Golden');
+  });
 });

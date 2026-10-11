@@ -100,6 +100,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .status-badge--stored { color: #184a2c; background: rgb(222 242 218 / 92%); }
 .status-badge--delivered { color: #765014; background: rgb(255 235 181 / 94%); }
 .status-badge--repairing { color: #5b3f76; background: rgb(232 218 247 / 94%); }
+.status-badge--golden { color: #6f4b08; background: linear-gradient(135deg, #fff1b8, #f5cf62); border: 1px solid rgb(166 119 20 / 35%); box-shadow: 0 0 0 2px rgb(245 207 98 / 18%); }
+.inventory-card__badges { position: absolute; top: .75rem; right: .75rem; display: flex; align-items: center; gap: .4rem; }
+.inventory-card__badges .status-badge { position: static; backdrop-filter: blur(10px); }
+.inventory-list .inventory-row .inventory-row__golden-badge { position: static; min-height: 1.65rem; padding: .3rem .55rem; font-size: .58rem; backdrop-filter: none; }
 .repairment-card .status-badge { position: static; flex: none; }
 .status-badge--awaiting_spare_part { color: #765014; background: rgb(255 235 181 / 94%); }
 .status-badge--repaired { color: #2c6630; background: rgb(214 238 211 / 94%); }

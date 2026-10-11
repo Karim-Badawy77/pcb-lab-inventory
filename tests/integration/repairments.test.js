@@ -37,6 +37,21 @@ test('stored items get golden unit records and golden does not count as repairme
   expect(rows.filter((row) => row.status !== 'golden')).toHaveLength(0);
 });
 
+test('creates an item with multiple submitted repairment units', async () => {
+  const response = await request(app).post('/api/items').send({
+    name: 'Stock controller', stored: true, total_quantity: 2, available_quantity: 2,
+    location: { warehouse: 'W' }, serial_num: ['SN-1', 'SN-2'],
+    repairments: [
+      { status: 'golden', serial_num: 'SN-1' },
+      { status: 'golden', serial_num: 'SN-2' },
+    ],
+  });
+
+  expect(response.status).toBe(201);
+  const rows = await Repairment.find({ item_id: response.body.data._id, deleted: false }).sort({ serial_num: 1 });
+  expect(rows.map((row) => row.serial_num)).toEqual(['SN-1', 'SN-2']);
+});
+
 test('repairment updates increment item count and record linked field history', async () => {
   const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W', section: 'S', pack: 'P' } });
   const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing', spare_part: [{ part: 'R1', price: 2 }] });

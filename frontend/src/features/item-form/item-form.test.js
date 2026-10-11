@@ -21,6 +21,18 @@ describe('item form domain', () => {
     expect(JSON.parse(toItemFormData(form).get('repairments'))[0]).toMatchObject({ status: 'golden', serial_num: 'SN-1' });
   });
 
+  it('uses entered item serial numbers for generated unit repairments when row serials are blank', () => {
+    const form = {
+      ...emptyItemForm(), name: 'Stock board', total_quantity: 2,
+      serialNumText: 'SN-1, SN-2',
+      repairments: [{ status: 'golden', serial_num: '' }, { status: 'golden', serial_num: '' }]
+    };
+
+    const body = toItemFormData(form);
+    expect(JSON.parse(body.get('serial_num'))).toEqual(['SN-1', 'SN-2']);
+    expect(JSON.parse(body.get('repairments')).map((unit) => unit.serial_num)).toEqual(['SN-1', 'SN-2']);
+  });
+
   it('requires only warehouse for stored items', () => {
     const form = {
       ...emptyItemForm(), name: 'Board', part_num: 'B-1', stored: true,

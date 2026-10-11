@@ -7,7 +7,7 @@
     },
     "main": "src/server.js",
     "scripts": {
-        "start": "node scripts/start.js",
+        "start": "npm run build && node scripts/start.js",
         "migrate:quantities": "node scripts/migrate-quantities.js",
         "dev": "concurrently \"node --watch src/server.js\" \"vite --config frontend/vite.config.js --host 0.0.0.0\"",
         "build": "vite build --config frontend/vite.config.js",

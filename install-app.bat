@@ -3,6 +3,7 @@ setlocal
 cd /d "%~dp0"
 
 echo Installing dependencies...
+echo.
 call npm install --no-fund --no-audit
 if errorlevel 1 (
     echo.
@@ -11,7 +12,9 @@ if errorlevel 1 (
     exit /b 1
 )
 
+echo.
 echo Building frontend...
+echo.
 call npm run build
 if errorlevel 1 (
     echo.
@@ -20,8 +23,10 @@ if errorlevel 1 (
     exit /b 1
 )
 
+echo.
 echo Starting app...
-call npm start
+echo.
+call node scripts/start.js
 if errorlevel 1 (
     echo.
     echo App failed to start.

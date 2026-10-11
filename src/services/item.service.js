@@ -60,11 +60,13 @@ async function createItem(payload, files = []) {
             }).save({ session });
             if (Array.isArray(payload.repairments)) {
                 if (payload.repairments.length !== created.total_quantity) throw new ApiError(400, 'One unit record is required per total quantity');
-                await Repairment.create(payload.repairments.map((repairment, index) => ({
-                    ...repairment,
-                    item_id: created._id,
-                    ...(created.serial_num[index] ? { serial_num: created.serial_num[index] } : {}),
-                })), { session });
+                for (const [index, repairment] of payload.repairments.entries()) {
+                    await new Repairment({
+                        ...repairment,
+                        item_id: created._id,
+                        ...(created.serial_num[index] ? { serial_num: created.serial_num[index] } : {}),
+                    }).save({ session });
+                }
             } else {
                 await syncRepairments(created, session);
             }
@@ -108,7 +110,19 @@ async function listItems({
             .limit(limit),
         Item.countDocuments(filter),
     ]);
-    return { items, total, page, limit };
+    const goldenItemIds = items.length
+        ? await Repairment.distinct('item_id', {
+            item_id: { $in: items.map((item) => item._id) },
+            status: 'golden',
+            deleted: { $ne: true },
+        })
+        : [];
+    const goldenItemIdSet = new Set(goldenItemIds.map((id) => String(id)));
+    const itemsWithGoldenFlag = items.map((item) => ({
+        ...item.toObject(),
+        has_golden_repairment: goldenItemIdSet.has(String(item._id)),
+    }));
+    return { items: itemsWithGoldenFlag, total, page, limit };
 }
 
 async function getItem(id, { includeDeleted = false } = {}) {

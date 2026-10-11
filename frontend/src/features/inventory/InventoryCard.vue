@@ -18,6 +18,7 @@ defineProps({ item: { type: Object, required: true }, view: { type: String, defa
       </span>
       <span class="inventory-row__meta">
         <StatusBadge :stored="item.stored" :under-repairment="item.under_repairment" />
+        <span v-if="item.has_golden_repairment" class="status-badge status-badge--golden inventory-row__golden-badge">Golden</span>
         <span class="inventory-row__quantity" :aria-label="`${item.available_quantity ?? item.total_quantity ?? 1} available`">
           <strong>{{ item.available_quantity ?? item.total_quantity ?? 1 }}</strong> available
         </span>
@@ -28,7 +29,10 @@ defineProps({ item: { type: Object, required: true }, view: { type: String, defa
     <div class="card-image">
       <img v-if="primaryImage(item)" :src="primaryImage(item)" :alt="`${item.name} board`">
       <div v-else class="pcb-placeholder" aria-label="No item image"><span></span><i></i><b>PCB</b></div>
-      <StatusBadge :stored="item.stored" :under-repairment="item.under_repairment" />
+      <span class="inventory-card__badges">
+        <StatusBadge :stored="item.stored" :under-repairment="item.under_repairment" />
+        <span v-if="item.has_golden_repairment" class="status-badge status-badge--golden">Golden</span>
+      </span>
       <span class="quantity-badge" :aria-label="`${item.available_quantity ?? item.total_quantity ?? 1} available`">
         {{ item.available_quantity ?? item.total_quantity ?? 1 }} available
       </span>

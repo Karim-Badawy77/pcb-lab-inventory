@@ -29,7 +29,7 @@ For stored items, warehouse is required while section and pack are optional. For
 
 Each item unit has a status record. Stored units that are functional and have never been repaired use the `golden` status; these are excluded from repairment counts and shown in a separate golden-unit count. Repairment records use `repairing`, `awaiting_spare_part`, `repaired`, or `unrepairable`. Under-repair items remain stored in the lab. Delivering an individual unit reduces the parent item's available quantity by one.
 
-For existing databases, run `npm run migrate:quantities` once before deploying the new application. The migration copies each legacy `quantity` value into `total_quantity` and `available_quantity`, converts legacy functional units to golden records, and removes the item-level `functional` field.
+For existing databases, run `npm run migrate:quantities` before deploying the new application. The migration copies each legacy `quantity` value into `total_quantity` and `available_quantity`, converts legacy functional units to golden records, and removes the item-level `functional` field. Keep this and future legacy-data migration scripts in the repository so they remain available for production deployments and recovery; see [AGENTS.md](AGENTS.md) for migration requirements.
 
 ## Repairment features
 
