@@ -76,6 +76,7 @@ test('repairment updates increment item count and record linked field history', 
 
 test('adding a repairment increases total quantity and available quantity by one', async () => {
   const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W', section: 'S', pack: 'P' }, total_quantity: 3, available_quantity: 2 });
+  await Repairment.insertMany(Array.from({ length: 3 }, () => ({ item_id: item._id, status: 'repairing' })));
 
   const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing' });
 
@@ -83,8 +84,20 @@ test('adding a repairment increases total quantity and available quantity by one
   expect((await Item.findById(item._id)).toObject()).toMatchObject({ total_quantity: 4, available_quantity: 3 });
 });
 
+test('adding a repairment for an existing unrecorded unit does not increase item quantities', async () => {
+  const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W', section: 'S', pack: 'P' }, total_quantity: 3, available_quantity: 2 });
+  await Repairment.create({ item_id: item._id, status: 'repairing' });
+  await Repairment.create({ item_id: item._id, status: 'repairing' });
+
+  const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing' });
+
+  expect(created.status).toBe(201);
+  expect((await Item.findById(item._id)).toObject()).toMatchObject({ total_quantity: 3, available_quantity: 2 });
+});
+
 test('adding an already delivered repairment increases total quantity but keeps availability unchanged', async () => {
   const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W', section: 'S', pack: 'P' }, total_quantity: 3, available_quantity: 2 });
+  await Repairment.insertMany(Array.from({ length: 3 }, () => ({ item_id: item._id, status: 'repairing' })));
 
   const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'delivered', delivered_to: 'Assembly' });
 

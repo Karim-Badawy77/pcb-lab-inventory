@@ -19,8 +19,14 @@ async function createRepairment(itemId, payload) {
       throw new ApiError(400, 'Repairments for a delivered item must also be delivered');
     }
     if (payload.status === 'delivered' && !payload.delivered_to?.trim()) throw new ApiError(400, 'delivered_to is required for delivered repairments');
+    const existingRepairmentCount = await Repairment.countDocuments({ item_id: item._id, deleted: false }).session(session);
     const repairment = await new Repairment({ ...payload, ...(payload.status === 'delivered' ? { delivered_at: payload.delivered_at || new Date() } : {}), item_id: item._id }).save({ session });
-    await Item.updateOne({ _id: item._id }, { $inc: { total_quantity: 1, available_quantity: 1, edit_count: 1 } }, { session });
+    const itemIncrement = { edit_count: 1 };
+    if (existingRepairmentCount === item.total_quantity) {
+      itemIncrement.total_quantity = 1;
+      itemIncrement.available_quantity = 1;
+    }
+    await Item.updateOne({ _id: item._id }, { $inc: itemIncrement }, { session });
     if (repairment.status === 'delivered') {
       await Item.updateOne({ _id: item._id, available_quantity: { $gt: 0 } }, { $inc: { available_quantity: -1 } }, { session });
     }

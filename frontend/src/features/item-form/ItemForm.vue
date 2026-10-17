@@ -18,7 +18,7 @@ const form = reactive(itemToForm(props.initialItem));
 const errors = ref({});
 const files = ref([]);
 const removeImageIds = ref([]);
-const imageOrder = ref([]);
+const imageOrder = ref((form.images || []).map((image) => image._id));
 const retainedImageCount = ref(form.images?.length || 0);
 const ready = ref(false);
 

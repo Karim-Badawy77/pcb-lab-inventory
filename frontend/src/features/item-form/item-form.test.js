@@ -164,6 +164,16 @@ describe('ItemForm', () => {
     });
   });
 
+  it('submits the existing image order when an item has one untouched image', async () => {
+    const wrapper = mount(ItemForm, {
+      props: { initialItem: { ...emptyItemForm(), name: 'Board', location: { warehouse: 'W1', section: '', pack: '' }, images: [{ _id: 'only-image', path: '/only.png' }] } }
+    });
+
+    await wrapper.get('form').trigger('submit');
+
+    expect(wrapper.emitted('submit').at(-1)[0].imageOrder).toEqual(['only-image']);
+  });
+
   it('shows examples for item and repairment unit text fields', async () => {
     const wrapper = mount(ItemForm, { props: { initialItem: emptyItemForm(), creationMode: true } });
     const expectExamples = () => {
