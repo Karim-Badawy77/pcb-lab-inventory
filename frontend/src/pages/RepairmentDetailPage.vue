@@ -7,7 +7,7 @@ import { formatDate } from '@/lib/dates';
 import HistoryTimeline from '@/features/item-detail/HistoryTimeline.vue';
 const route = useRoute(); const repairment = ref(null); const error = ref(''); const loading = ref(true);
 function statusLabel(status) { return String(status || '').replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); }
-onMounted(async () => { try { repairment.value = await apiRequest(`/api/repairments/${route.params.id}`); try { const item = await apiRequest(`/api/items/${repairment.value.item_id}`); repairment.value.history = (item.history || []).filter((row) => String(row.repairment_id) === String(repairment.value._id)); } catch { /* keep embedded repairment history */ } } catch (requestError) { error.value = requestError.message; } finally { loading.value = false; } });
+onMounted(async () => { try { repairment.value = await apiRequest(`/api/repairments/${route.params.id}`); try { const item = await apiRequest(`/api/items/${repairment.value.item_id}`); document.title = item.name; repairment.value.history = (item.history || []).filter((row) => String(row.repairment_id) === String(repairment.value._id)); } catch { /* keep embedded repairment history */ } } catch (requestError) { error.value = requestError.message; } finally { loading.value = false; } });
 </script>
 <template>
   <main class="page detail-page"><FeedbackMessage :message="error" />

@@ -40,6 +40,7 @@ async function loadItem() {
     error.value = "";
     try {
         item.value = await apiRequest(`/api/items/${route.params.id}`);
+        document.title = item.value.name;
         try {
             repairments.value =
                 (await apiRequest(
