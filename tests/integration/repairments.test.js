@@ -41,8 +41,8 @@ test('creates an item with multiple submitted repairment units', async () => {
     name: 'Stock controller', stored: true, total_quantity: 2, available_quantity: 2,
     location: { warehouse: 'W' }, serial_num: ['SN-1', 'SN-2'],
     repairments: [
-      { status: 'golden', serial_num: 'SN-1' },
-      { status: 'golden', serial_num: 'SN-2' },
+      { status: 'repairing', golden: true, serial_num: 'SN-1' },
+      { status: 'repairing', golden: true, serial_num: 'SN-2' },
     ],
   });
 
@@ -55,8 +55,8 @@ test('creates only the requested golden units for a delivered item', async () =>
   const response = await request(app).post('/api/items').send({
     name: 'Delivered stock', stored: false, delivered_to: 'Assembly', total_quantity: 4, available_quantity: 0,
     repairments: [
-      { status: 'golden', serial_num: 'G-1' },
-      { status: 'golden', serial_num: 'G-2' },
+      { status: 'repairing', golden: true, serial_num: 'G-1' },
+      { status: 'repairing', golden: true, serial_num: 'G-2' },
     ],
   });
   expect(response.status).toBe(201);
@@ -68,10 +68,30 @@ test('creates only the requested golden units for a delivered item', async () =>
 test('repairment updates increment item count and record linked field history', async () => {
   const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W', section: 'S', pack: 'P' } });
   const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing', spare_part: [{ part: 'R1', price: 2 }] });
-  const updated = await request(app).patch(`/api/repairments/${created.body.data._id}`).send({ status: 'repaired' });
+  const updated = await request(app).patch(`/api/repairments/${created.body.data._id}`).send({ status: 'awaiting_spare_part' });
   expect(updated.status).toBe(200);
   expect((await Item.findById(item._id)).edit_count).toBe(2);
   expect(await History.exists({ item_id: item._id, repairment_id: created.body.data._id, 'fields.field_name': 'status' })).toBeTruthy();
+});
+
+test('repairment repaired boolean is persisted independently and recorded in history', async () => {
+  const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W', section: 'S', pack: 'P' } });
+  const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing' });
+  const updated = await request(app).patch(`/api/repairments/${created.body.data._id}`).send({ repaired: true });
+
+  expect(updated.status).toBe(200);
+  expect(updated.body.data).toMatchObject({ status: 'repairing', repaired: true });
+  expect(await History.exists({ item_id: item._id, repairment_id: created.body.data._id, 'fields.field_name': 'repaired' })).toBeTruthy();
+});
+
+test('rejects repairments that are both repaired and golden on create and update', async () => {
+  const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W', section: 'S', pack: 'P' } });
+  const invalidCreate = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing', repaired: true, golden: true });
+  expect(invalidCreate.status).toBe(400);
+
+  const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'repairing', repaired: true });
+  const invalidUpdate = await request(app).patch(`/api/repairments/${created.body.data._id}`).send({ golden: true });
+  expect(invalidUpdate.status).toBe(400);
 });
 
 test('adding a repairment increases total quantity and available quantity by one', async () => {
@@ -157,7 +177,7 @@ test('allows delivery from any repairment state and keeps the parent under repai
 
 test('delivering a golden unit decreases availability without counting it as repairment', async () => {
   const item = await Item.create({ name: 'Stored controller', stored: true, location: { warehouse: 'W' }, total_quantity: 2, available_quantity: 2 });
-  const unit = await Repairment.create({ item_id: item._id, status: 'golden' });
+  const unit = await Repairment.create({ item_id: item._id, status: 'repairing', golden: true });
   const response = await request(app).patch(`/api/repairments/${unit._id}`).send({ status: 'delivered', delivered_to: 'Assembly' });
   expect(response.status).toBe(200);
   expect((await Item.findById(item._id)).toObject()).toMatchObject({ total_quantity: 2, available_quantity: 1, stored: true });
@@ -165,7 +185,7 @@ test('delivering a golden unit decreases availability without counting it as rep
 
 test('delivering the last golden unit delivers the parent item', async () => {
   const item = await Item.create({ name: 'Stored controller', stored: true, location: { warehouse: 'W' }, total_quantity: 1, available_quantity: 1 });
-  const unit = await Repairment.create({ item_id: item._id, status: 'golden' });
+  const unit = await Repairment.create({ item_id: item._id, status: 'repairing', golden: true });
   const response = await request(app).patch(`/api/repairments/${unit._id}`).send({ status: 'delivered', delivered_to: 'Assembly' });
   expect(response.status).toBe(200);
   expect((await Item.findById(item._id)).toObject()).toMatchObject({ stored: false, available_quantity: 0, delivered_to: 'Assembly' });
@@ -173,7 +193,7 @@ test('delivering the last golden unit delivers the parent item', async () => {
 
 test('delivering a golden unit does not clear an outstanding repair queue', async () => {
   const item = await Item.create({ name: 'Mixed stock controller', stored: true, under_repairment: true, location: { warehouse: 'lab', section: null, pack: null }, total_quantity: 2, available_quantity: 2 });
-  const golden = await Repairment.create({ item_id: item._id, status: 'golden' });
+  const golden = await Repairment.create({ item_id: item._id, status: 'repairing', golden: true });
   await Repairment.create({ item_id: item._id, status: 'repairing' });
   const response = await request(app).patch(`/api/repairments/${golden._id}`).send({ status: 'delivered', delivered_to: 'Assembly' });
   expect(response.status).toBe(200);

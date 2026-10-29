@@ -80,9 +80,9 @@ export function validateItemForm(form, files = [], retainedImageCount = 0, valid
   if (form.under_repairment && validateRepairments) {
     if ((form.repairments || []).length + (form.goldenIncluded ? Number(form.goldenQuantity) || 0 : 0) !== Number(form.total_quantity)) errors.repairments = 'Add one record for each non-golden unit';
     (form.repairments || []).forEach((unit, index) => {
-      if (!['golden', 'repaired', 'unrepairable', 'repairing', 'awaiting_spare_part'].includes(unit.status)) errors[`repairments.${index}.status`] = 'Select a unit status';
+      if (!['unrepairable', 'repairing', 'awaiting_spare_part'].includes(unit.status)) errors[`repairments.${index}.status`] = 'Select a unit status';
     });
-  } else if (validateRepairments && form.stored && (form.repairments || []).length && (form.repairments || []).some((unit) => unit.status !== 'golden')) {
+  } else if (validateRepairments && form.stored && (form.repairments || []).length && (form.repairments || []).some((unit) => !unit.golden)) {
     errors.repairments = 'Stored units must be golden';
   } else if (form.stored) {
     if (!form.location?.warehouse?.trim()) errors['location.warehouse'] = 'Warehouse is required';
@@ -141,6 +141,8 @@ export function toItemFormData(form, files = [], removeImageIds = [], imageOrder
       serial_num: String(unit.serial_num || '').trim() || enteredSerials[index] || undefined,
       owner: String(unit.owner || '').trim() || undefined,
       status: unit.status,
+      repaired: Boolean(unit.repaired),
+      golden: Boolean(unit.golden),
       field_test_date: String(unit.field_test_date_text || '').split(',').map((value) => value.trim()).filter(Boolean),
       repairer: String(unit.repairer_text || '').split(',').map((value) => value.trim()).filter(Boolean),
       spare_part: String(unit.spare_part_text || '').split(',').map((value) => value.trim()).filter(Boolean).map((entry) => {

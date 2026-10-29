@@ -27,15 +27,21 @@ Items support names, optional part numbers, total quantity received by the lab, 
 
 For stored items, warehouse is required while section and pack are optional. For delivered items, `delivered_to` is required. Part number and other metadata are optional. Images accept JPEG, PNG, and WebP files, with a maximum of 10 images and 5 MB per image.
 
-Each item unit has a status record. Stored units that are functional and have never been repaired use the `golden` status; these are excluded from repairment counts and shown in a separate golden-unit count. Repairment records use `repairing`, `awaiting_spare_part`, `repaired`, or `unrepairable`. Under-repair items remain stored in the lab. Delivering an individual unit reduces the parent item's available quantity by one.
+Each item unit has a status record. Stored units that are functional and have never been repaired use the `golden` boolean; these are excluded from repairment counts and shown in a separate golden-unit count. Repairment records use `repairing`, `awaiting_spare_part`, or `unrepairable`, with `repaired` tracked by its own boolean. Under-repair items remain stored in the lab. Delivering an individual unit reduces the parent item's available quantity by one.
 
 For existing databases, run `npm run migrate:quantities` before deploying the new application. The migration copies each legacy `quantity` value into `total_quantity` and `available_quantity`, converts legacy functional units to golden records, and removes the item-level `functional` field. Keep this and future legacy-data migration scripts in the repository so they remain available for production deployments and recovery; see [AGENTS.md](AGENTS.md) for migration requirements.
 
 Before deploying the per-unit owner change to an existing database, run `npm run migrate:repairment-owners`. It copies each legacy item owner to that item's repairment records only where a unit owner is empty, so reruns preserve explicit per-unit owners. Run it before deploying the application version that removes item-level owner support.
 
+Before deploying the separate repaired-boolean change to an existing database, run `npm run migrate:repairment-repaired-boolean`. It changes legacy repairments with `status: "repaired"` to `status: "repairing"` and sets `repaired: true`; reruns only target rows that still have the legacy status. Run it before deploying the application version that removes `repaired` from the status enum.
+
+Before deploying the separate golden-boolean change to an existing database, run `npm run migrate:repairment-golden-boolean`. It changes legacy repairments with `status: "golden"` to `status: "repairing"` and sets `golden: true`; reruns only target rows that still have the legacy status. Run it before deploying the application version that removes `golden` from the status enum.
+
+Run `npm run migrate:delivered-repairments-to-repaired` when preparing existing data to treat delivered repairments as repaired. It sets `repaired: true` and clears `golden` for every delivered repairment, preserving the rule that the two booleans cannot both be true. The migration is safe to rerun and should be run before deploying code that relies on this interpretation.
+
 ## Repairment features
 
-Unit records belong to an item and require a status: `golden`, `repairing`, `awaiting_spare_part`, `repaired`, `unrepairable`, or `delivered`. Golden means functional with no repairment history. Serial number, field-test dates, repairers, spare parts, prices, and update notes are optional. Non-golden unit records have dedicated details, edit, and soft-delete flows.
+Unit records belong to an item and require a status: `repairing`, `awaiting_spare_part`, `unrepairable`, or `delivered`. Whether a unit has been repaired and whether it is golden are tracked separately by the `repaired` and `golden` booleans. Golden means functional with no repairment history. Serial number, field-test dates, repairers, spare parts, prices, and update notes are optional. Non-golden unit records have dedicated details, edit, and soft-delete flows.
 
 ## Frontend routes
 

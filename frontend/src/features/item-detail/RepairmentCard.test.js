@@ -23,13 +23,33 @@ describe('RepairmentCard', () => {
     expect(wrapper.get('[data-testid="unit-status-badge"]').text()).toBe('Awaiting Spare Part');
   });
 
-  it('highlights golden units with a golden status badge', () => {
+  it('shows a repaired badge independently beside the status badge', () => {
     const wrapper = mount(RepairmentCard, {
-      props: { repairment: { _id: 'repair-1', serial_num: 'SN-42', status: 'golden' } },
+      props: { repairment: { _id: 'repair-1', status: 'repairing', repaired: true } },
       global: { stubs: { RouterLink: { template: '<a><slot /></a>', props: ['to'] } } }
     });
 
-    expect(wrapper.get('[data-testid="unit-status-badge"]').classes()).toContain('status-badge--golden');
-    expect(wrapper.get('[data-testid="unit-status-badge"]').text()).toBe('Golden');
+    expect(wrapper.find('[data-testid="unit-status-badge"]').exists()).toBe(false);
+    expect(wrapper.get('[data-testid="repaired-badge"]').text()).toBe('Repaired');
+  });
+
+  it('keeps the status badge for repaired units with another status', () => {
+    const wrapper = mount(RepairmentCard, {
+      props: { repairment: { _id: 'repair-1', status: 'awaiting_spare_part', repaired: true } },
+      global: { stubs: { RouterLink: { template: '<a><slot /></a>', props: ['to'] } } }
+    });
+
+    expect(wrapper.get('[data-testid="unit-status-badge"]').text()).toBe('Awaiting Spare Part');
+    expect(wrapper.get('[data-testid="repaired-badge"]').text()).toBe('Repaired');
+  });
+
+  it('highlights golden units with a separate golden badge', () => {
+    const wrapper = mount(RepairmentCard, {
+      props: { repairment: { _id: 'repair-1', serial_num: 'SN-42', status: 'repairing', golden: true } },
+      global: { stubs: { RouterLink: { template: '<a><slot /></a>', props: ['to'] } } }
+    });
+
+    expect(wrapper.find('[data-testid="unit-status-badge"]').exists()).toBe(false);
+    expect(wrapper.get('[data-testid="golden-badge"]').text()).toBe('Golden');
   });
 });

@@ -1,5 +1,5 @@
 <script setup>
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
 import AutocompleteField from "@/components/AutocompleteField.vue";
 const props = defineProps({
     initialRepairment: { type: Object, default: () => ({}) },
@@ -8,8 +8,11 @@ const props = defineProps({
     suggestions: { type: Object, default: () => ({}) },
 });
 const emit = defineEmits(["submit", "cancel"]);
+const validationError = ref("");
 const form = reactive({
     status: props.initialRepairment.status || "repairing",
+    repaired: props.initialRepairment.repaired ?? false,
+    golden: props.initialRepairment.golden ?? false,
     serial_num: props.initialRepairment.serial_num || "",
     owner: props.initialRepairment.owner || "",
     delivered_to: props.initialRepairment.delivered_to || "",
@@ -32,8 +35,15 @@ function addToday() {
 }
 function submit() {
     if (!form.status) return;
+    if (form.repaired && form.golden) {
+        validationError.value = "A repairment cannot be both repaired and golden.";
+        return;
+    }
+    validationError.value = "";
     emit("submit", {
         status: form.status,
+        repaired: form.repaired,
+        golden: form.golden,
         serial_num: form.serial_num.trim(),
         owner: form.owner.trim() || undefined,
         delivered_to: form.delivered_to.trim() || undefined,
@@ -75,18 +85,21 @@ function submit() {
                 ><label class="field"
                     ><span>Status *</span
                     ><select v-model="form.status" name="status" required>
-                        <option value="golden">Golden (functional, never repaired)</option>
                         <option value="repairing">Repairing</option>
                         <option value="awaiting_spare_part">
                             Awaiting spare part
                         </option>
-                        <option value="repaired">Repaired</option>
                         <option value="unrepairable">Unrepairable</option>
                         <option value="delivered">Delivered</option>
                     </select></label
                 >
             </div>
             <label class="field"><span>Owner</span><AutocompleteField v-model="form.owner" name="owner" placeholder="Unit owner" :suggestions="suggestions.owner || []" /></label>
+            <div class="repairment-flags" data-testid="repairment-flags">
+                <label class="checkbox-field"><input v-model="form.repaired" name="repaired" type="checkbox" /><span>Repaired</span></label>
+                <label class="checkbox-field"><input v-model="form.golden" name="golden" type="checkbox" /><span>Golden (functional, never repaired)</span></label>
+            </div>
+            <p v-if="validationError" class="field-error" role="alert">{{ validationError }}</p>
             <div v-if="form.status === 'delivered'" class="field-grid">
                 <label class="field"
                     ><span>Delivered to *</span
@@ -104,7 +117,7 @@ function submit() {
                         :suggestions="suggestions.delivered_by || []"
                 /></label>
             </div>
-            <template v-if="form.status !== 'golden'">
+            <template v-if="!form.golden">
             <label class="field"
                 ><span>Field test dates</span>
                 <div class="input-with-action">

@@ -8,31 +8,31 @@ describe('item form domain', () => {
   it('serializes under-repair unit data and validates quantity cards', () => {
     const form = {
       ...emptyItemForm(), name: 'Board', stored: true, under_repairment: true, quantity: 2,
-      repairments: [{ status: 'repairing' }, { status: 'repaired' }]
+      repairments: [{ status: 'repairing' }, { status: 'repairing', repaired: true }]
     };
     expect(validateItemForm(form)).toEqual({});
     const body = toItemFormData(form);
     expect(body.get('under_repairment')).toBe('true');
-    expect(JSON.parse(body.get('repairments'))).toMatchObject([{ status: 'repairing' }, { status: 'repaired' }]);
+    expect(JSON.parse(body.get('repairments'))).toMatchObject([{ status: 'repairing', repaired: false, golden: false }, { status: 'repairing', repaired: true, golden: false }]);
   });
 
   it('accepts golden unit records for stored inventory', () => {
-    const form = { ...emptyItemForm(), name: 'Stock board', total_quantity: 1, location: { warehouse: 'W', section: '', pack: '' }, repairments: [{ status: 'golden', serial_num: 'SN-1' }] };
+    const form = { ...emptyItemForm(), name: 'Stock board', total_quantity: 1, location: { warehouse: 'W', section: '', pack: '' }, repairments: [{ status: 'repairing', golden: true, serial_num: 'SN-1' }] };
     expect(validateItemForm(form)).toEqual({});
-    expect(JSON.parse(toItemFormData(form).get('repairments'))[0]).toMatchObject({ status: 'golden', serial_num: 'SN-1' });
+    expect(JSON.parse(toItemFormData(form).get('repairments'))[0]).toMatchObject({ status: 'repairing', golden: true, serial_num: 'SN-1' });
   });
 
   it('serializes a partial set of golden units for a delivered item', () => {
     const form = {
       ...emptyItemForm(), name: 'Delivered stock', stored: false, delivered_to: 'Assembly', total_quantity: 4,
       available_quantity: 0, repairments: [
-        { status: 'golden', serial_num: 'G-1' },
-        { status: 'golden', serial_num: 'G-2' }
+        { status: 'repairing', golden: true, serial_num: 'G-1' },
+        { status: 'repairing', golden: true, serial_num: 'G-2' }
       ]
     };
     expect(validateItemForm(form)).toEqual({});
     expect(JSON.parse(toItemFormData(form).get('repairments')).map(({ status, serial_num }) => [status, serial_num]))
-      .toEqual([['golden', 'G-1'], ['golden', 'G-2']]);
+      .toEqual([['repairing', 'G-1'], ['repairing', 'G-2']]);
   });
 
   it('rejects a golden quantity greater than total quantity', () => {
@@ -47,7 +47,7 @@ describe('item form domain', () => {
     const form = {
       ...emptyItemForm(), name: 'Stock board', total_quantity: 2,
       serialNumText: 'SN-1, SN-2',
-      repairments: [{ status: 'golden', serial_num: '' }, { status: 'golden', serial_num: '' }]
+      repairments: [{ status: 'repairing', golden: true, serial_num: '' }, { status: 'repairing', golden: true, serial_num: '' }]
     };
 
     const body = toItemFormData(form);
@@ -107,7 +107,7 @@ describe('ItemForm', () => {
     await wrapper.get('[name="delivered_to"]').setValue('Assembly');
     await wrapper.get('form').trigger('submit');
     expect(wrapper.emitted('submit')[0][0].form.repairments).toMatchObject([
-      { status: 'golden', serial_num: 'G-1' }, { status: 'golden', serial_num: 'G-2' }
+      { status: 'repairing', golden: true, serial_num: 'G-1' }, { status: 'repairing', golden: true, serial_num: 'G-2' }
     ]);
   });
 
@@ -125,7 +125,7 @@ describe('ItemForm', () => {
       props: {
         initialItem: {
           ...emptyItemForm(),
-          repairments: [{ status: 'golden', serial_num: 'SN-1' }]
+          repairments: [{ status: 'repairing', golden: true, serial_num: 'SN-1' }]
         },
         creationMode: true
       }
@@ -204,7 +204,7 @@ describe('ItemForm', () => {
       props: {
         initialItem: {
           ...emptyItemForm(),
-          repairments: [{ _id: 'repair-1', status: 'repairing' }, { _id: 'repair-2', status: 'repaired' }]
+          repairments: [{ _id: 'repair-1', status: 'repairing' }, { _id: 'repair-2', status: 'repairing', repaired: true }]
         }
       }
     });

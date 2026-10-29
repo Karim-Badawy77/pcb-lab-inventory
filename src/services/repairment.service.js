@@ -5,16 +5,17 @@ const History = require('../models/history.model');
 const ApiError = require('../utils/api-error');
 const { buildFieldChanges, plain } = require('./history.service');
 
-const EDITABLE = ['serial_num', 'owner', 'status', 'field_test_date', 'repairer', 'spare_part', 'updates', 'delivered_to', 'delivered_by', 'delivered_at'];
+const EDITABLE = ['serial_num', 'owner', 'status', 'repaired', 'golden', 'field_test_date', 'repairer', 'spare_part', 'updates', 'delivered_to', 'delivered_by', 'delivered_at'];
 function assertId(id) { if (!mongoose.isObjectIdOrHexString(id)) throw new ApiError(400, 'Invalid repairment id'); }
 function assertItemId(id) { if (!mongoose.isObjectIdOrHexString(id)) throw new ApiError(400, 'Invalid item id'); }
 
 async function createRepairment(itemId, payload) {
   assertItemId(itemId);
+  if (payload.repaired && payload.golden) throw new ApiError(400, 'A repairment cannot be both repaired and golden');
   return mongoose.connection.transaction(async (session) => {
     const item = await Item.findOne({ _id: itemId, deleted: false }).session(session);
     if (!item) throw new ApiError(404, 'Item not found');
-    if (payload.status === 'golden' && !item.stored) throw new ApiError(400, 'Golden units must be stored');
+    if (payload.golden && !item.stored) throw new ApiError(400, 'Golden units must be stored');
     if (!item.stored && payload.status !== 'delivered') {
       throw new ApiError(400, 'Repairments for a delivered item must also be delivered');
     }
@@ -46,12 +47,17 @@ async function updateRepairment(id, patch) {
   return mongoose.connection.transaction(async (session) => {
     const repairment = await Repairment.findOne({ _id: id, deleted: false }).session(session);
     if (!repairment) throw new ApiError(404, 'Repairment not found');
-    if (Object.hasOwn(patch, 'status') && patch.status !== 'delivered') {
+    if ((patch.repaired ?? repairment.repaired) && (patch.golden ?? repairment.golden)) {
+      throw new ApiError(400, 'A repairment cannot be both repaired and golden');
+    }
+    if (Object.hasOwn(patch, 'status') || Object.hasOwn(patch, 'golden')) {
       const item = await Item.findOne({ _id: repairment.item_id, deleted: false }).session(session);
-      if (item && !item.stored && patch.status !== 'golden') {
+      const nextStatus = patch.status ?? repairment.status;
+      const nextGolden = patch.golden ?? repairment.golden;
+      if (item && !item.stored && nextStatus !== 'delivered') {
         throw new ApiError(400, 'Repairments for a delivered item must remain delivered');
       }
-      if (item && !item.stored && patch.status === 'golden') throw new ApiError(400, 'Golden units must be stored');
+      if (item && !item.stored && nextGolden) throw new ApiError(400, 'Golden units must be stored');
     }
     const before = repairment.toObject();
     if (patch.status === 'delivered') {
@@ -71,8 +77,8 @@ async function updateRepairment(id, patch) {
       await Item.updateOne({ _id: repairment.item_id, deleted: false, available_quantity: { $gt: 0 } }, { $inc: { available_quantity: -1 } }, { session });
       const remaining = await Repairment.countDocuments({ item_id: repairment.item_id, deleted: false, status: { $ne: 'delivered' } }).session(session);
       if (remaining === 0) await Item.updateOne({ _id: repairment.item_id, deleted: false }, { $set: { stored: false, under_repairment: false, location: undefined, delivered_to: repairment.delivered_to || '', delivered_by: repairment.delivered_by || '' }, $inc: { edit_count: 1 } }, { session });
-      else if (before.status !== 'golden') {
-        const pendingRepairments = await Repairment.countDocuments({ item_id: repairment.item_id, deleted: false, status: { $nin: ['delivered', 'golden'] } }).session(session);
+      else if (!before.golden) {
+        const pendingRepairments = await Repairment.countDocuments({ item_id: repairment.item_id, deleted: false, status: { $ne: 'delivered' }, golden: { $ne: true } }).session(session);
         if (pendingRepairments === 0) await Item.updateOne({ _id: repairment.item_id, deleted: false }, { $set: { under_repairment: false } }, { session });
       }
     }

@@ -32,6 +32,15 @@ describe('RepairmentForm', () => {
     expect(wrapper.emitted('submit')[0][0].serial_num).toBe('SN-NEW');
   });
 
+  it('edits repaired independently from the repairment status', async () => {
+    const wrapper = mount(RepairmentForm, { props: { initialRepairment: { status: 'repairing', repaired: true } } });
+    expect(wrapper.get('[name="repaired"]').element.checked).toBe(true);
+    await wrapper.get('[name="repaired"]').setValue(false);
+    await wrapper.get('form').trigger('submit');
+
+    expect(wrapper.emitted('submit')[0][0]).toMatchObject({ status: 'repairing', repaired: false });
+  });
+
   it('shows and submits the repairment owner', async () => {
     const wrapper = mount(RepairmentForm, { props: { initialRepairment: { status: 'repairing', owner: 'Karim' } } });
     expect(wrapper.get('[name="owner"]').element.value).toBe('Karim');
@@ -40,17 +49,33 @@ describe('RepairmentForm', () => {
     expect(wrapper.emitted('submit')[0][0].owner).toBe('Mona');
   });
 
-  it('offers golden as an add and edit status and submits it', async () => {
+  it('edits golden independently and retains the status dropdown', async () => {
     const wrapper = mount(RepairmentForm, { props: { initialRepairment: { status: 'repairing' } } });
-    expect(wrapper.find('[name="status"] option[value="golden"]').exists()).toBe(true);
-    await wrapper.get('[name="status"]').setValue('golden');
+    expect(wrapper.find('[name="status"]').exists()).toBe(true);
+    expect(wrapper.find('[name="status"] option[value="golden"]').exists()).toBe(false);
+    await wrapper.get('[name="golden"]').setValue(true);
     await wrapper.get('form').trigger('submit');
-    expect(wrapper.emitted('submit')[0][0].status).toBe('golden');
+    expect(wrapper.emitted('submit')[0][0]).toMatchObject({ status: 'repairing', golden: true });
+  });
+
+  it('rejects a repairment that is both repaired and golden', async () => {
+    const wrapper = mount(RepairmentForm, { props: { initialRepairment: { status: 'repairing' } } });
+    await wrapper.get('[name="repaired"]').setValue(true);
+    await wrapper.get('[name="golden"]').setValue(true);
+    await wrapper.get('form').trigger('submit');
+
+    expect(wrapper.emitted('submit')).toBeUndefined();
+    expect(wrapper.get('[role="alert"]').text()).toContain('cannot be both repaired and golden');
+  });
+
+  it('aligns repaired and golden checkboxes in one flags section', () => {
+    const wrapper = mount(RepairmentForm);
+    expect(wrapper.get('[data-testid="repairment-flags"]').findAll('input[type="checkbox"]')).toHaveLength(2);
   });
 
   it('shows only serial number and status fields for a golden unit', async () => {
     const wrapper = mount(RepairmentForm, { props: { initialRepairment: { status: 'repairing' } } });
-    await wrapper.get('[name="status"]').setValue('golden');
+    await wrapper.get('[name="golden"]').setValue(true);
     expect(wrapper.find('[name="serial_num"]').exists()).toBe(true);
     expect(wrapper.find('[name="status"]').exists()).toBe(true);
     for (const field of ['delivered_to', 'delivered_by', 'field_test_date', 'repairer', 'spare_part', 'update']) {

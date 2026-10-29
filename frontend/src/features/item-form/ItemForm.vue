@@ -104,7 +104,7 @@ function submit() {
     const submittedForm = itemToForm(form);
     if (props.creationMode && form.goldenIncluded) {
         const serials = String(form.goldenSerialNumText || "").split(",").map((serial) => serial.trim()).filter(Boolean);
-        const goldenUnits = Array.from({ length: Number(form.goldenQuantity) }, (_, index) => ({ status: "golden", serial_num: serials[index] || "" }));
+        const goldenUnits = Array.from({ length: Number(form.goldenQuantity) }, (_, index) => ({ status: "repairing", golden: true, serial_num: serials[index] || "" }));
         submittedForm.repairments = [...goldenUnits, ...submittedForm.repairments];
     }
     emit("submit", {

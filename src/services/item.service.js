@@ -62,6 +62,9 @@ async function createItem(payload, files = []) {
                     throw new ApiError(400, 'Repairment records must match the item quantity');
                 }
                 for (const [index, repairment] of payload.repairments.entries()) {
+                    if (repairment.repaired && repairment.golden) {
+                        throw new ApiError(400, 'A repairment cannot be both repaired and golden');
+                    }
                     await new Repairment({
                         ...repairment,
                         ...(repairment.owner === undefined && legacyOwner !== undefined ? { owner: legacyOwner } : {}),
@@ -115,7 +118,7 @@ async function listItems({
     const goldenItemIds = items.length
         ? await Repairment.distinct('item_id', {
             item_id: { $in: items.map((item) => item._id) },
-            status: 'golden',
+            golden: true,
             deleted: { $ne: true },
         })
         : [];

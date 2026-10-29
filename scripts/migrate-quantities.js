@@ -29,7 +29,7 @@ async function migrateQuantities() {
       const existing = await repairments.countDocuments({ item_id: item._id, deleted: { $ne: true } });
       const unitCount = item.total_quantity || item.quantity || 1;
       for (let index = existing; index < unitCount; index += 1) {
-        await repairments.insertOne({ item_id: item._id, status: 'golden', deleted: false, field_test_date: [], repairer: [], spare_part: [], updates: [], createdAt: new Date(), updatedAt: new Date() });
+        await repairments.insertOne({ item_id: item._id, status: 'repairing', golden: true, repaired: false, deleted: false, field_test_date: [], repairer: [], spare_part: [], updates: [], createdAt: new Date(), updatedAt: new Date() });
       }
     }
     const removedFunctional = await items.updateMany({}, { $unset: { functional: '' } });

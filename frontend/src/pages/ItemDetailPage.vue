@@ -16,12 +16,21 @@ const route = useRoute();
 const router = useRouter();
 const item = ref(null);
 const repairments = ref([]);
+const repairmentStatusFilter = ref("all");
+const repairmentFlagFilter = ref("all");
 const repairmentCount = computed(
-    () => repairments.value.filter((row) => row.status !== "golden").length,
+    () => repairments.value.filter((row) => !row.golden).length,
 );
 const goldenCount = computed(
-    () => repairments.value.filter((row) => row.status === "golden").length,
+    () => repairments.value.filter((row) => row.golden).length,
 );
+const filteredRepairments = computed(() => repairments.value
+    .filter((row) => repairmentStatusFilter.value === "all" || row.status === repairmentStatusFilter.value)
+    .filter((row) => repairmentFlagFilter.value === "all"
+        || (repairmentFlagFilter.value === "repaired" && row.repaired)
+        || (repairmentFlagFilter.value === "golden" && row.golden))
+    .slice()
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)));
 const loading = ref(true);
 const error = ref("");
 const success = ref("");
@@ -277,21 +286,37 @@ onBeforeRouteLeave(
                     }}
                     (functional, never repaired).
                 </p>
+                <p class="muted repairment-order-note">Listed from newest to oldest.</p>
                 <RouterLink
                     class="button button--ghost"
                     :to="`/items/${item._id}/repairments/new`"
                     >Add repairment</RouterLink
                 >
+                <div v-if="repairments.length" class="repairment-filters" data-testid="repairment-filters">
+                    <label><span>Status</span><select v-model="repairmentStatusFilter" aria-label="Filter repairments by status">
+                        <option value="all">All statuses</option>
+                        <option value="repairing">Repairing</option>
+                        <option value="awaiting_spare_part">Awaiting spare part</option>
+                        <option value="unrepairable">Unrepairable</option>
+                        <option value="delivered">Delivered</option>
+                    </select></label>
+                    <label><span>Unit type</span><select v-model="repairmentFlagFilter" aria-label="Filter repairments by repaired or golden">
+                        <option value="all">All units</option>
+                        <option value="repaired">Repaired</option>
+                        <option value="golden">Golden</option>
+                    </select></label>
+                </div>
                 <div v-if="repairments.length" class="repairment-grid">
                     <RepairmentCard
-                        v-for="repairment in repairments"
+                        v-for="repairment in filteredRepairments"
                         :key="repairment._id"
                         :repairment="repairment"
                     />
                 </div>
-                <p v-if="!repairmentCount" class="muted">
+                <p v-if="!repairments.length" class="muted">
                     No repairments recorded.
                 </p>
+                <p v-else-if="!filteredRepairments.length" class="muted" data-testid="repairment-filter-empty">No units match these filters.</p>
             </section>
             <section class="detail-section">
                 <span class="eyebrow">Logs</span>

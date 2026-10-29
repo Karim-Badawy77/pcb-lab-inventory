@@ -56,8 +56,9 @@ test('repairment validates status and structured spare parts', async () => {
   await expect(new Repairment({ item_id: repairment.item_id, status: 'bad' }).validate()).rejects.toThrow();
 });
 
-test('golden is a valid repairment status', async () => {
-  const repairment = new Repairment({ item_id: new mongoose.Types.ObjectId(), status: 'golden', owner: 'Mona' });
+test('golden is stored independently from repairment status', async () => {
+  const repairment = new Repairment({ item_id: new mongoose.Types.ObjectId(), status: 'repairing', golden: true, owner: 'Mona' });
   await expect(repairment.validate()).resolves.toBeUndefined();
   expect(repairment.owner).toBe('Mona');
+  expect(repairment.golden).toBe(true);
 });
