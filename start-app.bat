@@ -20,6 +20,9 @@ if errorlevel 1 (
 echo.
 echo Starting app...
 echo.
+echo http://10.0.5.1:3000
+echo.
+
 start http://localhost:3000
 
 call node scripts/start.js
