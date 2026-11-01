@@ -15,7 +15,7 @@ async function createRepairment(itemId, payload) {
   return mongoose.connection.transaction(async (session) => {
     const item = await Item.findOne({ _id: itemId, deleted: false }).session(session);
     if (!item) throw new ApiError(404, 'Item not found');
-    if (payload.golden && !item.stored) throw new ApiError(400, 'Golden units must be stored');
+    if (payload.golden && !item.stored && payload.status !== 'delivered') throw new ApiError(400, 'Golden units on a delivered item must also be delivered');
     if (!item.stored && payload.status !== 'delivered') {
       throw new ApiError(400, 'Repairments for a delivered item must also be delivered');
     }
@@ -57,7 +57,7 @@ async function updateRepairment(id, patch) {
       if (item && !item.stored && nextStatus !== 'delivered') {
         throw new ApiError(400, 'Repairments for a delivered item must remain delivered');
       }
-      if (item && !item.stored && nextGolden) throw new ApiError(400, 'Golden units must be stored');
+      if (item && !item.stored && nextGolden && nextStatus !== 'delivered') throw new ApiError(400, 'Golden units on a delivered item must also be delivered');
     }
     const before = repairment.toObject();
     if (patch.status === 'delivered') {

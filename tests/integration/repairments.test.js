@@ -94,6 +94,15 @@ test('rejects repairments that are both repaired and golden on create and update
   expect(invalidUpdate.status).toBe(400);
 });
 
+test('allows a delivered unit to be marked golden while remaining delivered', async () => {
+  const item = await Item.create({ name: 'Delivered controller', stored: false, delivered_to: 'Assembly', total_quantity: 1, available_quantity: 0 });
+  const created = await request(app).post(`/api/repairments/item/${item._id}`).send({ status: 'delivered', delivered_to: 'Assembly' });
+  expect(created.status).toBe(201);
+  const updated = await request(app).patch(`/api/repairments/${created.body.data._id}`).send({ golden: true, status: 'delivered' });
+  expect(updated.status).toBe(200);
+  expect(updated.body.data).toMatchObject({ status: 'delivered', golden: true });
+});
+
 test('adding a repairment increases total quantity and available quantity by one', async () => {
   const item = await Item.create({ name: 'Controller', stored: true, location: { warehouse: 'W', section: 'S', pack: 'P' }, total_quantity: 3, available_quantity: 2 });
   await Repairment.insertMany(Array.from({ length: 3 }, () => ({ item_id: item._id, status: 'repairing' })));

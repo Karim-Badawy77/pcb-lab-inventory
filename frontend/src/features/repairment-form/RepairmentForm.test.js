@@ -3,14 +3,21 @@ import { mount } from '@vue/test-utils';
 import RepairmentForm from './RepairmentForm.vue';
 
 describe('RepairmentForm', () => {
+  it('starts a new unit on a delivered item as delivered', async () => {
+    const wrapper = mount(RepairmentForm, { props: { parentItem: { stored: false, delivered_to: 'Assembly' } } });
+    expect(wrapper.get('[name="status"]').element.value).toBe('delivered');
+    expect(wrapper.get('[name="delivered_to"]').element.value).toBe('Assembly');
+    await wrapper.get('form').trigger('submit');
+    expect(wrapper.emitted('submit')[0][0]).toMatchObject({ status: 'delivered', delivered_to: 'Assembly' });
+  });
   it('shows examples for empty repairment text fields', async () => {
     const wrapper = mount(RepairmentForm);
-    const textFields = wrapper.findAll('input, textarea');
+    const textFields = wrapper.findAll('input:not([type="checkbox"]), textarea');
     expect(textFields.length).toBeGreaterThan(0);
     for (const field of textFields) expect(field.attributes('placeholder')).toBeTruthy();
 
     await wrapper.get('[name="status"]').setValue('delivered');
-    for (const field of wrapper.findAll('input, textarea')) expect(field.attributes('placeholder')).toBeTruthy();
+    for (const field of wrapper.findAll('input:not([type="checkbox"]), textarea')) expect(field.attributes('placeholder')).toBeTruthy();
   });
 
   it('offers existing repairment values as autocomplete suggestions', async () => {

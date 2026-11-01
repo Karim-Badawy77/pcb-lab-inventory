@@ -6,17 +6,18 @@ const props = defineProps({
     busy: Boolean,
     submitLabel: { type: String, default: "Save repairment" },
     suggestions: { type: Object, default: () => ({}) },
+    parentItem: { type: Object, default: null },
 });
 const emit = defineEmits(["submit", "cancel"]);
 const validationError = ref("");
 const form = reactive({
-    status: props.initialRepairment.status || "repairing",
+    status: props.parentItem?.stored === false ? "delivered" : (props.initialRepairment.status || "repairing"),
     repaired: props.initialRepairment.repaired ?? false,
     golden: props.initialRepairment.golden ?? false,
     serial_num: props.initialRepairment.serial_num || "",
     owner: props.initialRepairment.owner || "",
-    delivered_to: props.initialRepairment.delivered_to || "",
-    delivered_by: props.initialRepairment.delivered_by || "",
+    delivered_to: props.initialRepairment.delivered_to || props.parentItem?.delivered_to || "",
+    delivered_by: props.initialRepairment.delivered_by || props.parentItem?.delivered_by || "",
     field_test_date: (props.initialRepairment.field_test_date || []).join(", "),
     repairer: (props.initialRepairment.repairer || []).join(", "),
     spare_part: (props.initialRepairment.spare_part || [])
@@ -84,7 +85,7 @@ function submit() {
                         :suggestions="suggestions.serial_num || []" /></label
                 ><label class="field"
                     ><span>Status *</span
-                    ><select v-model="form.status" name="status" required>
+                    ><select v-model="form.status" name="status" required :disabled="parentItem?.stored === false">
                         <option value="repairing">Repairing</option>
                         <option value="awaiting_spare_part">
                             Awaiting spare part
